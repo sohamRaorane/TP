@@ -137,3 +137,38 @@ test('shift constrains rectangle to a square', async ({ page }) => {
   const [r] = await els(page);
   expect(Math.round(r.width)).toBe(Math.round(r.height));
 });
+
+test('arrow drawn between two shapes binds to both and follows when a shape moves', async ({ page }) => {
+  await pressKey(page, 'r');
+  await drag(page, { x: 200, y: 300 }, { x: 320, y: 400 });
+  await pressKey(page, 'r');
+  await drag(page, { x: 600, y: 300 }, { x: 720, y: 400 });
+  const [a, b] = await els(page);
+  await pressKey(page, 'a');
+  await drag(page, { x: 300, y: 350 }, { x: 640, y: 350 }, { steps: 12 });
+  const arrow = (await els(page)).find((e) => e.type === 'arrow') as any;
+  expect(arrow.startBinding?.elementId).toBe(a.id);
+  expect(arrow.endBinding?.elementId).toBe(b.id);
+  const endXBefore = arrow.x + arrow.points[arrow.points.length - 1][0];
+  // move B down/right: the arrow end follows
+  await page.mouse.click(720, 330); // right edge of B
+  await drag(page, { x: 720, y: 330 }, { x: 820, y: 430 }, { steps: 10 });
+  const moved = (await els(page)).find((e) => e.id === arrow.id) as any;
+  const endXAfter = moved.x + moved.points[moved.points.length - 1][0];
+  expect(endXAfter - endXBefore).toBeGreaterThan(80);
+  const endY = moved.y + moved.points[moved.points.length - 1][1];
+  expect(endY).toBeGreaterThan(400);
+  await page.screenshot({ path: '/tmp/e2e-shots/tools-arrow-binding.png' });
+});
+
+test('line: click-click multi-point mode, finished with Enter', async ({ page }) => {
+  await pressKey(page, 'l');
+  await page.mouse.click(300, 300);
+  await page.mouse.click(400, 350);
+  await page.mouse.click(500, 300);
+  await page.keyboard.press('Enter');
+  const [line] = await els(page);
+  expect(line.type).toBe('line');
+  expect(line.points).toHaveLength(3);
+  expect((await view(page)).activeTool).toBe('selection');
+});

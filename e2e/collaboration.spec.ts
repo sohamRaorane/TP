@@ -323,3 +323,77 @@ test('collaboration state is persisted: reopening the drawing after everyone lea
   expect(r).toBeTruthy();
   await ctx.close();
 });
+
+test('conflict: both users move the SAME shape at the same time -> identical result on both', async ({ browser }) => {
+  const s = await startSession(browser);
+  const { a, b } = s;
+  const r = await drawRect(a, 300, 300, 400, 400);
+  await expect.poll(async () => (await els(b)).length, { timeout: 2000 }).toBe(1);
+  const pb = await toScreen(b, r.x, r.y + 25);
+  await b.mouse.click(pb.x, pb.y);
+  // A still has r selected after drawing
+  await Promise.all([
+    (async () => {
+      for (let i = 0; i < 8; i++) await pressKey(a, 'Shift+ArrowRight');
+    })(),
+    (async () => {
+      for (let i = 0; i < 8; i++) await pressKey(b, 'Shift+ArrowDown');
+    })(),
+  ]);
+  await expectConverged(a, b);
+  const ea = (await byId(a, r.id))!;
+  const eb = (await byId(b, r.id))!;
+  expect([ea.x, ea.y]).toEqual([eb.x, eb.y]);
+  await closeSession(s);
+});
+
+test('conflict: B edits offline a shape that A deletes meanwhile -> converge', async ({ browser }) => {
+  const s = await startSession(browser);
+  const { a, b, ctxB } = s;
+  const r = await drawRect(a, 300, 300, 400, 400);
+  await expect.poll(async () => (await els(b)).length, { timeout: 2000 }).toBe(1);
+  await ctxB.setOffline(true);
+  const pb = await toScreen(b, r.x, r.y + 25);
+  await b.mouse.click(pb.x, pb.y);
+  await pressKey(b, 'Shift+ArrowRight');
+  await pressKey(a, 'Delete'); // A still has it selected
+  await ctxB.setOffline(false);
+  await expectConverged(a, b, 15_000);
+  // whichever wins, both agree on visibility
+  expect((await els(a)).length).toBe((await els(b)).length);
+  await closeSession(s);
+});
+
+test('text labels edited by B appear on A', async ({ browser }) => {
+  const s = await startSession(browser);
+  const { a, b } = s;
+  const r = await drawRect(a, 300, 300, 500, 400);
+  await expect.poll(async () => (await els(b)).length, { timeout: 2000 }).toBe(1);
+  await pressKey(b, 'Escape');
+  const c = await toScreen(b, 400, 350);
+  await b.mouse.dblclick(c.x, c.y);
+  await expect(b.getByTestId('text-editor')).toBeFocused();
+  await b.keyboard.type('From Bob');
+  await b.keyboard.press('Escape');
+  await expect
+    .poll(async () => (await els(a)).filter((e) => e.type === 'text').map((e) => [e.text, e.containerId]), { timeout: 2000 })
+    .toEqual([['From Bob', r.id]]);
+  await expectConverged(a, b);
+  await closeSession(s);
+});
+
+test('A reloads the room URL and rejoins; syncing continues', async ({ browser }) => {
+  const s = await startSession(browser);
+  const { a, b } = s;
+  const r = await drawRect(a, 300, 300, 400, 400);
+  await expect.poll(async () => (await els(b)).length, { timeout: 2000 }).toBe(1);
+  await expect(a).toHaveURL(/\?room=/);
+  await a.reload();
+  await a.waitForFunction(() => !!(window as any).__sketch);
+  await expect.poll(async () => (await collab(a)).status, { timeout: 10_000 }).toBe('connected');
+  await expect.poll(async () => (await els(a)).map((e) => e.id)).toEqual([r.id]);
+  await expect.poll(async () => (await collab(b)).collaborators).toBe(1);
+  const r2 = await drawRect(b, 600, 300, 700, 400);
+  await expect.poll(async () => (await els(a)).map((e) => e.id).sort(), { timeout: 2000 }).toEqual([r.id, r2.id].sort());
+  await closeSession(s);
+});
