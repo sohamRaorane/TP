@@ -101,7 +101,7 @@ export const api = {
     request<DrawingVersion>('GET', `/drawings/${enc(id)}/versions/${enc(versionId)}`),
   restoreVersion: (id: string, versionId: string) =>
     request<Drawing>('POST', `/drawings/${enc(id)}/versions/${enc(versionId)}/restore`),
-  share: (id: string, mode: 'edit' | 'view') =>
+  shareDrawing: (id: string, mode: 'edit' | 'view') =>
     request<{ roomId: string; mode: 'edit' | 'view'; url: string }>('POST', `/drawings/${enc(id)}/share`, { mode }),
 };
 export type Api = typeof api;

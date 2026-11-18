@@ -577,7 +577,7 @@ export const actions = {
         setUrlRoom(id);
       }
       if (mode === 'view') {
-        const r = await api.share(id, 'view');
+        const r = await api.shareDrawing(id, 'view');
         return roomShareUrl(r.roomId);
       }
       return roomShareUrl(id);
@@ -668,6 +668,44 @@ export const actions = {
   pasteContent: safeAsync('pasteContent', (content: ClipboardContent, at?: { x: number; y: number }) => handlePasteContent(content, at)),
   /** throws a line-numbered Error on parse problems so the dialog can show it */
   insertDiagramFromText: (text: string): void => insertDiagramFromText(text),
+  /** set (or clear) the link of the selected elements */
+  setLink: safe('setLink', (link: string | null) => {
+    if (!canEdit()) return;
+    const sel = getSelected().filter((e) => !e.locked);
+    if (!sel.length) return;
+    const clean = link && link.trim() ? link.trim().slice(0, 2000) : null;
+    st().updateElements(Object.fromEntries(sel.map((e) => [e.id, { link: clean }])));
+    st().commit();
+  }),
+  /** numeric geometry edit (properties panel); keeps linear points / bound text consistent */
+  updateGeometry: safe('updateGeometry', (id: string, g: { x?: number; y?: number; width?: number; height?: number; angle?: number }) => {
+    if (!canEdit()) return;
+    const el = st().elementsById[id];
+    if (!el || el.isDeleted || el.locked) return;
+    const ch: ElementChanges = {};
+    for (const k of ['x', 'y', 'width', 'height', 'angle'] as const) {
+      const v = g[k];
+      if (v === undefined || !Number.isFinite(v)) continue;
+      ch[k] = k === 'width' || k === 'height' ? Math.max(1, v) : v;
+    }
+    if (!Object.keys(ch).length) return;
+    if ((el.type === 'arrow' || el.type === 'line' || el.type === 'freedraw') && (ch.width !== undefined || ch.height !== undefined)) {
+      const sx = ch.width !== undefined && el.width ? (ch.width as number) / el.width : 1;
+      const sy = ch.height !== undefined && el.height ? (ch.height as number) / el.height : 1;
+      ch.points = el.points.map(([px, py]) => [px * sx, py * sy]);
+    }
+    const all: Record<string, ElementChanges> = { [id]: ch };
+    // keep a bound label centered / moved with its container
+    const nx = (ch.x as number | undefined) ?? el.x, ny = (ch.y as number | undefined) ?? el.y;
+    const nw = (ch.width as number | undefined) ?? el.width, nh = (ch.height as number | undefined) ?? el.height;
+    for (const b of el.boundElements) {
+      const t = st().elementsById[b.id];
+      if (b.type === 'text' && t && !t.isDeleted)
+        all[t.id] = { x: nx + (nw - t.width) / 2, y: ny + (nh - t.height) / 2, ...(ch.angle !== undefined ? { angle: ch.angle } : {}) };
+    }
+    st().updateElements(all);
+    st().commit();
+  }),
   updateUser: safe('updateUser', (p: { name?: string; color?: string }) => collab.updateUser(p)),
 };
 

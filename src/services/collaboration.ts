@@ -38,6 +38,7 @@ let laserTimer: ReturnType<typeof setInterval> | null = null;
 let applyingFollow = false;
 let joinedOnce = false;
 let joinedDrawingId: string | null = null;
+let lastPointer: PointerPayload | null = null;
 
 const cs = () => useCollaborationStore.getState();
 const canvas = () => useCanvasStore.getState();
@@ -204,9 +205,20 @@ function subscribeStores() {
   unsubs.push(
     useCanvasStore.subscribe((s, prev) => {
       const a = s.appState, b = prev.appState;
+      const moved = a.scrollX !== b.scrollX || a.scrollY !== b.scrollY || a.zoom !== b.zoom || a.width !== b.width || a.height !== b.height;
+      // let followers track our viewport even when the pointer does not move (wheel zoom, pan keys)
+      if (moved && !applyingFollow && lastPointer) collab.sendPointer({ ...lastPointer, viewport: undefined });
       if (applyingFollow || !a.followingSocketId || a.followingSocketId !== b.followingSocketId) return;
       if (a.scrollX !== b.scrollX || a.scrollY !== b.scrollY || a.zoom !== b.zoom)
         canvas().setAppState({ followingSocketId: null });
+    }),
+  );
+  // name / color changes are broadcast while connected
+  unsubs.push(
+    useCollaborationStore.subscribe((s, prev) => {
+      if (s.me === prev.me || (s.me.name === prev.me.name && s.me.color === prev.me.color)) return;
+      if (socket && currentRoom && isConnected())
+        socket.emit('user:update', { roomId: currentRoom, name: s.me.name, color: s.me.color });
     }),
   );
   // jump to the followed user's last known viewport immediately
@@ -291,6 +303,7 @@ export const collab = {
     socket = null;
     currentRoom = null;
     joinedDrawingId = null;
+    lastPointer = null;
     scheduleFlush.cancel();
     unsubs.forEach((u) => u());
     unsubs = [];
@@ -303,6 +316,7 @@ export const collab = {
   },
 
   sendPointer: throttle((p: PointerPayload) => {
+    lastPointer = p;
     if (!socket || !currentRoom || !isConnected()) return;
     const a = canvas().appState;
     const pointer: PointerPayload = p.viewport
@@ -325,7 +339,6 @@ export const collab = {
     } catch {
       /* ignore */
     }
-    if (socket && currentRoom && isConnected()) socket.emit('user:update', { roomId: currentRoom, name: me.name, color: me.color });
   },
 
   /** push pending local changes immediately */

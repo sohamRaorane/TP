@@ -267,6 +267,33 @@ describe('selection & editing', () => {
   });
 });
 
+describe('setLink / updateGeometry', () => {
+  it('sets and clears links in one commit each', () => {
+    const [a] = addCommitted(rect(0, 0));
+    select(a.id);
+    actions.setLink(' https://x.dev ');
+    expect(get(a.id).link).toBe('https://x.dev');
+    actions.setLink('');
+    expect(get(a.id).link).toBeNull();
+    expect(undoDepth()).toBe(3);
+  });
+
+  it('updates geometry, recenters bound text, scales linear points', () => {
+    const r = rect(0, 0, 100, 50);
+    const t = text(40, 12, 'x', { containerId: r.id, width: 20, height: 25 });
+    r.boundElements = [{ id: t.id, type: 'text' }];
+    const ar = arrow(0, 100, 100, 50);
+    addCommitted(r, t, ar);
+    actions.updateGeometry(r.id, { x: 10, width: 200 });
+    expect(get(r.id)).toMatchObject({ x: 10, width: 200 });
+    expect(get(t.id).x).toBe(10 + (200 - 20) / 2);
+    actions.updateGeometry(ar.id, { width: 200 });
+    expect((get(ar.id) as typeof ar).points[1]).toEqual([200, 50]);
+    actions.updateGeometry(r.id, { width: Number.NaN });
+    expect(undoDepth()).toBe(3);
+  });
+});
+
 describe('clipboard', () => {
   it('roundtrips elements and referenced files through JSON', () => {
     const r = rect(0, 0);

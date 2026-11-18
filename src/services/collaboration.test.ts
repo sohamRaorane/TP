@@ -182,6 +182,21 @@ describe('collaboration service', () => {
     expect(useCollaborationStore.getState().lasers.b).toBeUndefined();
   });
 
+  it('emits user:update when own name or color changes while connected', async () => {
+    await connect();
+    collab.updateUser({ name: 'Zed' });
+    expect(sock.emitted.filter((e) => e.ev === 'user:update').map((e) => e.p)).toEqual([
+      { roomId: 'd1', name: 'Zed', color: useCollaborationStore.getState().me.color },
+    ]);
+  });
+
+  it('accepts server-originated updates (from: "server")', async () => {
+    await connect();
+    const el = rect(1, 1);
+    sock.fire('scene:update', { elements: [el], from: 'server' });
+    expect(get(el.id)).toBeTruthy();
+  });
+
   it('disconnect leaves the room and resets state', async () => {
     await connect();
     collab.disconnect();
