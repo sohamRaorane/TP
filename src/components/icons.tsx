@@ -78,8 +78,7 @@ export const SloppinessIcon = ({ level, ...p }: P & { level: 0 | 1 | 2 }) => (
 
 export const EdgeSharpIcon = (p: P) => (
   <Svg {...p}>
-    <path d="M4 16V4h12" strokeDasharray="0" />
-    <path d="M9 16h0M16 9v0" />
+    <path d="M4 16V4h12" strokeDasharray="2 2.2" />
   </Svg>
 );
 export const EdgeRoundIcon = (p: P) => (

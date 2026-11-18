@@ -5,6 +5,7 @@ import { selectors, useCanvasStore } from '@/store/canvasStore';
 import { getCommonBounds } from '@/engine/transformations/bounds';
 import type { SketchElement } from '@/types/appState';
 import { setElementGeometry } from '../PropertiesPanel/elementOps';
+import { panelVisibleSelector } from '../PropertiesPanel/PropertiesPanel';
 import { closeDialog } from '../commands';
 import { run } from '../run';
 
@@ -68,7 +69,7 @@ export function StatsPanel() {
   const selected = useCanvasStore(useShallow(selectors.selectedElements));
   const zoom = useCanvasStore((s) => s.appState.zoom);
   const sceneNonce = useCanvasStore((s) => s.sceneNonce);
-  const minimap = useCanvasStore((s) => s.appState.showMinimap);
+  const propsVisible = useCanvasStore(panelVisibleSelector);
   const [sceneSize, setSceneSize] = useState('0 × 0');
 
   // scene bounds are O(n); recompute at most every 250ms
@@ -85,7 +86,7 @@ export function StatsPanel() {
   return (
     <section
       className="sb-island sb-pe absolute sb-scroll"
-      style={{ right: 16, bottom: minimap ? 220 : 64, width: 228, padding: '10px 12px 12px', maxHeight: 'calc(100vh - 220px)', overflowY: 'auto' }}
+      style={{ right: propsVisible ? 240 : 16, bottom: 64, width: 228, padding: '10px 12px 12px', maxHeight: 'calc(100vh - 220px)', overflowY: 'auto' }}
       aria-label="Stats"
       data-testid="stats-panel"
     >

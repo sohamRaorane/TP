@@ -27,7 +27,8 @@ function computeMapping(els: SketchElement[], view: { x: number; y: number; w: n
 function drawFallback(ctx: CanvasRenderingContext2D, els: SketchElement[], m: Mapping) {
   for (const el of els) {
     ctx.globalAlpha = Math.max(0.25, el.opacity / 100);
-    ctx.strokeStyle = el.strokeColor === 'transparent' ? '#868e96' : el.strokeColor;
+    const dark = document.querySelector('.sb-root.dark') !== null;
+    ctx.strokeStyle = el.strokeColor === 'transparent' ? '#868e96' : dark && /^#(1e1e1e|000000|000)$/i.test(el.strokeColor) ? '#e3e3e8' : el.strokeColor;
     ctx.fillStyle = el.backgroundColor;
     ctx.lineWidth = 1;
     const x = el.x * m.scale + m.offsetX, y = el.y * m.scale + m.offsetY;
@@ -139,8 +140,8 @@ function MinimapBody() {
       />
       <button
         type="button"
-        className="sb-tool absolute"
-        style={{ top: 6, right: 6, width: 22, height: 22, background: 'var(--island-bg)', boxShadow: 'var(--island-shadow)' }}
+        className="sb-tool"
+        style={{ position: 'absolute', top: 8, right: 8, width: 22, height: 22, background: 'var(--island-bg)', boxShadow: 'var(--island-shadow)' }}
         aria-label="Hide minimap"
         onClick={() => setUi({ showMinimap: false })}
       >

@@ -57,7 +57,7 @@ const setStyle = (changes: Partial<CurrentItemStyle>) => run(() => actions.setSt
 // ---------------------------------------------------------------- primitives
 function Section({ title, children, testId }: { title: string; children: ReactNode; testId?: string }) {
   return (
-    <fieldset className="sb-panel__section" data-testid={testId} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+    <fieldset className="sb-panel__section" data-testid={testId} style={{ border: 0, padding: 0, marginLeft: 0, marginRight: 0, marginBottom: 0, minWidth: 0 }}>
       <legend className="sb-panel__label" style={{ padding: 0, float: 'left', width: '100%' }}>{title}</legend>
       <div style={{ clear: 'both' }} />
       {children}
@@ -127,7 +127,7 @@ function ArrowheadPicker({ which, value, mixed }: { which: 'start' | 'end'; valu
       </Tooltip>
       {open && (
         <Popover anchor={ref.current} onClose={() => setOpen(false)} side="bottom" align="start" label={`${which} arrowhead`}>
-          <div className="sb-row" style={{ padding: 8, width: 5 * 40 }} role="radiogroup" aria-label={`${which} arrowhead`}>
+          <div className="sb-row" style={{ padding: 8, flexWrap: 'nowrap' }} role="radiogroup" aria-label={`${which} arrowhead`}>
             {HEADS.map((h) => (
               <Tooltip key={String(h.v)} label={h.label}>
                 <button
@@ -223,7 +223,7 @@ function LinkButton({ els }: { els: SketchElement[] }) {
 }
 
 // ---------------------------------------------------------------- panel
-const panelVisibleSelector = (s: ReturnType<typeof useCanvasStore.getState>) => {
+export const panelVisibleSelector = (s: ReturnType<typeof useCanvasStore.getState>) => {
   const a = s.appState;
   if (a.viewModeEnabled || a.zenMode || a.presentation.active) return false;
   return Object.keys(a.selectedElementIds).length > 0 || !!TOOL_PANEL[a.activeTool];
@@ -240,6 +240,8 @@ const PanelBody = memo(function PanelBody() {
   const activeTool = useCanvasStore((s) => s.appState.activeTool);
   const item = useCanvasStore((s) => s.appState.currentItem);
   const narrow = useIsNarrow();
+  const minimap = useCanvasStore((s) => s.appState.showMinimap);
+  const drawerOpen = useCanvasStore((s) => s.appState.openDialog === 'library' || s.appState.openDialog === 'versions');
 
   const mode: 'selection' | 'tool' = selected.length ? 'selection' : 'tool';
   const els = mode === 'selection' ? selected : null;
@@ -294,11 +296,11 @@ const PanelBody = memo(function PanelBody() {
   const ungroupable = !!els?.some((e) => e.groupIds.length > 0);
 
   return (
-    <div className="sb-props-wrap sb-pe" data-testid="properties-panel">
+    <div className="sb-props-wrap sb-pe" data-testid="properties-panel" style={drawerOpen && !narrow ? { right: 376 } : undefined}>
       <section
         aria-label={mode === 'selection' ? 'Selected element properties' : 'Default style for new elements'}
         className="sb-island sb-panel sb-scroll"
-        style={narrow ? undefined : { maxHeight: 'calc(100vh - 150px)' }}
+        style={narrow ? undefined : { maxHeight: `calc(100vh - ${minimap ? 310 : 150}px)` }}
         onContextMenu={(e) => e.preventDefault()}
       >
         <div className="sb-panel__grid">
@@ -376,7 +378,7 @@ const PanelBody = memo(function PanelBody() {
                 value={round.value}
                 onChange={(v) => setStyle({ roundness: v })}
                 options={[
-                  { value: false, label: types.has('arrow') && types.size === 1 ? 'Sharp' : 'Sharp', icon: <EdgeSharpIcon /> },
+                  { value: false, label: 'Sharp', icon: <EdgeSharpIcon /> },
                   { value: true, label: types.has('arrow') && types.size === 1 ? 'Curved' : 'Round', icon: <EdgeRoundIcon /> },
                 ]}
               />

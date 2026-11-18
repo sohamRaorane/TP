@@ -83,8 +83,8 @@ export function LibrarySidebar() {
                 <button
                   type="button"
                   aria-label={`Remove ${it.name || 'item'} from library`}
-                  className="sb-tool absolute opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-                  style={{ top: 2, right: 2, width: 24, height: 24, background: 'var(--island-bg)', boxShadow: 'var(--island-shadow)', color: 'var(--color-danger-strong)' }}
+                  className="sb-tool opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                  style={{ position: 'absolute', top: 2, right: 2, width: 24, height: 24, background: 'var(--island-bg)', boxShadow: 'var(--island-shadow)', color: 'var(--color-danger-strong)' }}
                   onClick={async () => {
                     const ok = await confirmDialog({ title: 'Remove item', message: 'Remove this item from your library?', confirmLabel: 'Remove', danger: true });
                     if (ok) remove(it.id);
