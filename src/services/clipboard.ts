@@ -124,11 +124,11 @@ export function lastPointerScene(): { x: number; y: number } | null {
 }
 
 export interface ClipboardHandlers {
-  copy: () => void | Promise<void>;
-  cut: () => void | Promise<void>;
+  /** serialized selection, or null when nothing is selected (then the event is left alone) */
+  serializeSelection: () => string | null;
+  /** delete the selection after a cut */
+  deleteSelection: () => void;
   paste: (content: ClipboardContent) => void | Promise<void>;
-  /** only handle copy/cut when something is selected */
-  hasSelection: () => boolean;
 }
 
 const hasPageTextSelection = () => {
@@ -138,10 +138,18 @@ const hasPageTextSelection = () => {
 
 export function installClipboardListeners(h: ClipboardHandlers): () => void {
   const onCopyCut = (kind: 'copy' | 'cut') => (e: ClipboardEvent) => {
-    if (isEditableTarget(e.target) || hasPageTextSelection() || !h.hasSelection()) return;
+    if (isEditableTarget(e.target) || hasPageTextSelection()) return;
     if (useCanvasStore.getState().appState.editingTextId) return;
+    const text = h.serializeSelection();
+    if (!text) return;
     e.preventDefault();
-    void (kind === 'copy' ? h.copy() : h.cut());
+    memory = text;
+    try {
+      e.clipboardData?.setData('text/plain', text);
+    } catch {
+      void writeClipboardText(text);
+    }
+    if (kind === 'cut') h.deleteSelection();
   };
   const onCopy = onCopyCut('copy');
   const onCut = onCopyCut('cut');
