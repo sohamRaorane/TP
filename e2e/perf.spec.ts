@@ -80,7 +80,7 @@ test('2000 elements: wheel pan and drag-move stay responsive', async ({ page }) 
   // zoom out a bit so that many elements are visible at once
   await page.mouse.move(700, 450);
   await page.keyboard.down('Control');
-  for (let i = 0; i < 2; i++) await page.mouse.wheel(0, 100);
+  for (let i = 0; i < 10; i++) await page.mouse.wheel(0, 100); // ~10% per notch -> zoom ~0.35
   await page.keyboard.up('Control');
   await page.screenshot({ path: '/tmp/e2e-shots/perf-scene.png' });
 
