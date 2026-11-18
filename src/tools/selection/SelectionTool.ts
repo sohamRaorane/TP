@@ -5,7 +5,7 @@ import type { LinearElement, SketchElement } from '@/types/appState';
 import { isLinear } from '@shared/element';
 import type { CanvasPointerEvent, Tool, ToolContext } from '@/tools/types';
 import { cloneElements } from '@/engine/drawing/newElement';
-import { hitTestScene } from '@/engine/hitTesting';
+import { hitTestElement, hitTestScene } from '@/engine/hitTesting';
 import { getElementsInRect } from '@/engine/hitTesting';
 import { getCommonBounds, getElementBounds, boundsContain, type Bounds } from '@/engine/transformations/bounds';
 import {
@@ -72,6 +72,13 @@ type Mode =
   | { kind: 'point'; id: string; index: number; orig: LinearElement };
 
 const HIT_TOL_PX = 8;
+
+/** ids plus arrows bound to them (excluded from snapping while moving) */
+const withBoundArrows = (ids: Set<string>, byId: Record<string, SketchElement>) => {
+  const out = new Set(ids);
+  for (const id of ids) byId[id]?.boundElements.forEach((b) => b.type === 'arrow' && out.add(b.id));
+  return out;
+};
 
 export class SelectionTool implements Tool {
   type = 'selection' as const;
@@ -172,7 +179,7 @@ export class SelectionTool implements Tool {
       this.mode = { kind: 'rotate', origs, primary: ids, center, start: e };
       return;
     }
-    this.mode = { kind: 'resize', handle, origs, primary: ids, bounds, targets: collectSnapTargets(all) };
+    this.mode = { kind: 'resize', handle, origs, primary: ids, bounds, targets: collectSnapTargets(withBoundArrows(all, s.elementsById)) };
   }
 
   // ------------------------------------------------------------ pointer move
@@ -269,7 +276,7 @@ export class SelectionTool implements Tool {
       origs,
       primary: sel,
       startBounds: getCommonBounds(primaryEls),
-      targets: collectSnapTargets(all),
+      targets: collectSnapTargets(withBoundArrows(all, s.elementsById)),
       duplicated: false,
     };
     s.setAppState({ hoveredElementId: null });
@@ -487,12 +494,22 @@ export class SelectionTool implements Tool {
     if (a.viewModeEnabled) return;
     const zoom = a.zoom;
     const els = visibleElements();
-    const hit = hitTestScene(e.scene.x, e.scene.y, els, HIT_TOL_PX / zoom, {
+    let hit = hitTestScene(e.scene.x, e.scene.y, els, HIT_TOL_PX / zoom, {
       selectedIds: a.selectedElementIds,
       skipLocked: true,
       mapLabelsToContainer: false,
       zoom,
     });
+    if (!hit || hit.type === 'frame') {
+      // double-click inside a transparent shape still targets it (label editing)
+      for (let i = els.length - 1; i >= 0; i--) {
+        const el = els[i];
+        if (!el.locked && canHaveLabel(el) && hitTestElement(el, e.scene.x, e.scene.y, 0, { selected: true })) {
+          hit = el;
+          break;
+        }
+      }
+    }
     if (hit && hit.groupIds.length) {
       // enter the next group level unless already at the element
       const k = a.editingGroupId ? hit.groupIds.indexOf(a.editingGroupId) : -1;
