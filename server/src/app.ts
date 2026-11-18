@@ -87,7 +87,8 @@ export async function createServer(options: CreateServerOptions = {}): Promise<R
     });
   });
   const port = (httpServer.address() as AddressInfo).port;
-  const url = `http://localhost:${port}`;
+  const displayHost = !config.host || config.host === '0.0.0.0' || config.host === '::' ? 'localhost' : config.host;
+  const url = `http://${displayHost}:${port}`;
   log(`[server] listening on ${url} (storage: ${repo.kind})`);
 
   let closing: Promise<void> | null = null;
