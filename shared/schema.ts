@@ -60,6 +60,7 @@ export const textElementSchema = z.object({
   ...base,
   type: z.literal('text'),
   text: z.string().max(100_000),
+  originalText: z.string().max(100_000).optional(),
   fontSize: z.number().positive().max(1000),
   fontFamily: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   textAlign: z.enum(['left', 'center', 'right']),

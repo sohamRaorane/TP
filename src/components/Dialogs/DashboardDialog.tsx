@@ -31,7 +31,7 @@ function Card({ d, current, onChanged }: { d: DrawingSummary; current: boolean; 
     setRenaming(false);
     const next = name.trim();
     if (!next || next === d.name) { setName(d.name); return; }
-    if (current) run(() => actions.rename(next));
+    if (current) { await runAsync(() => actions.rename(next)); onChanged(); }
     else if (await runAsync(() => apiClient.renameDrawing(d.id, next))) onChanged();
   };
 

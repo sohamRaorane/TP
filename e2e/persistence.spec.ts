@@ -75,11 +75,10 @@ test('local recovery after reload when the server is unreachable', async ({ page
   expect(await els(page)).toHaveLength(3);
 });
 
-// PRODUCT BUG (dev / StrictMode): routing calls requestSave() for unsynced recovered work, but the
+// REGRESSION TEST (bug found by e2e, now fixed) (dev / StrictMode): routing calls requestSave() for unsynced recovered work, but the
 // StrictMode effect cleanup of initPersistence() cancels serverDebounced, so nothing is sent until the
 // next local edit (status stays "Unsaved").
 test('unsaved local work is recovered and then saved once the server is back', async ({ page }) => {
-  test.fail();
   await page.route('**/api/**', (route) => route.abort());
   await openApp(page);
   await drawRect(page, 300, 300, 400, 400);
@@ -109,11 +108,10 @@ test('recovered work is saved after the next edit once the server is back', asyn
   await ctx2.close();
 });
 
-// PRODUCT BUG: renaming the CURRENT drawing from its dashboard card calls actions.rename but never
+// REGRESSION TEST (bug found by e2e, now fixed): renaming the CURRENT drawing from its dashboard card calls actions.rename but never
 // refreshes the list (DashboardDialog.tsx commitRename: `if (current) run(...)` without onChanged()),
 // so the card keeps showing the old name.
 test('dashboard card shows the new name after renaming the current drawing', async ({ page }) => {
-  test.fail();
   await openApp(page);
   const name = unique('E2E stale');
   await drawRect(page, 300, 300, 400, 400);

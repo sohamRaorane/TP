@@ -68,7 +68,8 @@ export function wrapText(text: string, fontSize: number, fontFamily: FontFamily,
         }
       } else line = cand;
     }
-    out.push(line);
+    // trailing spaces must not count toward the wrapped width (e.g. while typing "word ")
+    out.push(line.trimEnd());
   }
   return out.join('\n');
 }

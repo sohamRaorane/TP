@@ -203,7 +203,8 @@ export function initPersistence(): () => void {
     unsubMeta();
     unsubSignal();
     recoveryDebounced.flush();
-    serverDebounced.cancel();
+    // flush (not cancel): a pending save must survive React StrictMode remounts and real unmounts
+    if (serverDebounced.pending()) serverDebounced.flush();
     if (retryTimer) clearTimeout(retryTimer);
     retryTimer = null;
     window.removeEventListener('beforeunload', onBeforeUnload);

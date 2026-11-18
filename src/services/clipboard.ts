@@ -153,8 +153,17 @@ export function installClipboardListeners(h: ClipboardHandlers): () => void {
   };
   const onCopy = onCopyCut('copy');
   const onCut = onCopyCut('cut');
+  // Linux primary-selection paste fires on middle-click; middle-click is our pan gesture
+  let lastMiddleUp = -Infinity;
+  const onMiddle = (e: PointerEvent | MouseEvent) => {
+    if (e.button === 1) lastMiddleUp = performance.now();
+  };
   const onPaste = (e: ClipboardEvent) => {
     if (isEditableTarget(e.target) || useCanvasStore.getState().appState.editingTextId) return;
+    if (performance.now() - lastMiddleUp < 500) {
+      e.preventDefault();
+      return;
+    }
     e.preventDefault();
     void h.paste(readClipboardEvent(e));
   };
@@ -169,7 +178,13 @@ export function installClipboardListeners(h: ClipboardHandlers): () => void {
   document.addEventListener('cut', onCut);
   document.addEventListener('paste', onPaste);
   window.addEventListener('pointermove', onMove, { passive: true });
+  window.addEventListener('pointerup', onMiddle, true);
+  window.addEventListener('mouseup', onMiddle, true);
+  window.addEventListener('auxclick', onMiddle, true);
   return () => {
+    window.removeEventListener('pointerup', onMiddle, true);
+    window.removeEventListener('mouseup', onMiddle, true);
+    window.removeEventListener('auxclick', onMiddle, true);
     document.removeEventListener('copy', onCopy);
     document.removeEventListener('cut', onCut);
     document.removeEventListener('paste', onPaste);

@@ -2,7 +2,7 @@
 import { useCanvasStore, type ElementChanges } from '@/store/canvasStore';
 import type { SketchElement, TextElement } from '@/types/appState';
 import { getElementCenter } from '@/engine/math';
-import { measureText } from './textMeasure';
+import { measureText, wrapText } from './textMeasure';
 
 export const LABEL_PADDING = 8;
 
@@ -14,13 +14,18 @@ export const getBoundTextId = (el: SketchElement) => el.boundElements.find((b) =
 const fitFactor = (type: SketchElement['type']) => (type === 'ellipse' ? Math.SQRT2 : type === 'diamond' ? 2 : 1);
 
 /**
- * Lay out a label inside its container: center it (same angle) and grow the
- * container (around its center) if the text does not fit.
+ * Lay out a label inside its container like Excalidraw: word-wrap the source
+ * text to the container's inner width, center it (same angle), and grow the
+ * container's height (around its center) if the wrapped text does not fit.
+ * Width only grows when a single glyph cannot fit.
  */
 export function layoutBoundText(container: SketchElement, text: TextElement): Record<string, ElementChanges> {
-  const m = measureText(text.text || ' ', text.fontSize, text.fontFamily, text.lineHeight);
-  const out: Record<string, ElementChanges> = {};
   const k = fitFactor(container.type);
+  const source = text.originalText ?? text.text;
+  const maxW = Math.max(container.width / k - LABEL_PADDING * 2, text.fontSize);
+  const wrapped = wrapText(source, text.fontSize, text.fontFamily, maxW);
+  const m = measureText(wrapped || ' ', text.fontSize, text.fontFamily, text.lineHeight);
+  const out: Record<string, ElementChanges> = {};
   const needW = (m.width + LABEL_PADDING * 2) * k;
   const needH = (m.height + LABEL_PADDING * 2) * k;
   const c = getElementCenter(container);
@@ -31,8 +36,8 @@ export function layoutBoundText(container: SketchElement, text: TextElement): Re
   }
   const tx = c.x - m.width / 2;
   const ty = c.y - m.height / 2;
-  if (text.x !== tx || text.y !== ty || text.width !== m.width || text.height !== m.height || text.angle !== container.angle)
-    out[text.id] = { x: tx, y: ty, width: m.width, height: m.height, angle: container.angle };
+  if (text.x !== tx || text.y !== ty || text.width !== m.width || text.height !== m.height || text.angle !== container.angle || text.text !== wrapped || text.originalText !== source)
+    out[text.id] = { x: tx, y: ty, width: m.width, height: m.height, angle: container.angle, text: wrapped, originalText: source };
   return out;
 }
 

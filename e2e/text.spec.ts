@@ -116,10 +116,9 @@ test('long label stays inside its container', async ({ page }) => {
   expect(label.x + label.width).toBeLessThanOrEqual(rect.x + rect.width);
 });
 
-// PRODUCT BUG: labels never wrap (wrapText in engine/drawing/textMeasure.ts is unused);
+// REGRESSION TEST (bug found by e2e, now fixed): labels never wrap (wrapText in engine/drawing/textMeasure.ts is unused);
 // layoutBoundText widens the container around its center instead.
 test('long label wraps to the container width (Excalidraw behaviour)', async ({ page }) => {
-  test.fail();
   const r = await drawRect(page, 300, 300, 420, 400);
   await pressKey(page, 'Escape');
   await page.mouse.dblclick(360, 350);
