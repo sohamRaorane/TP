@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Drawing {
+  id           String           @id @default(uuid())
+  name         String           @default("Untitled drawing")
+  data         Json
+  thumbnail    String?
+  elementCount Int              @default(0)
+  revision     Int              @default(1)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  versions     DrawingVersion[]
+  shareLinks   ShareLink[]
+}
+
+model DrawingVersion {
+  id           String   @id @default(uuid())
+  drawingId    String
+  drawing      Drawing  @relation(fields: [drawingId], references: [id], onDelete: Cascade)
+  data         Json
+  elementCount Int      @default(0)
+  label        String?
+  createdAt    DateTime @default(now())
+
+  @@index([drawingId, createdAt])
+}
+
+model ShareLink {
+  id        String   @id @default(uuid()) // used as roomId for view-only links
+  drawingId String
+  drawing   Drawing  @relation(fields: [drawingId], references: [id], onDelete: Cascade)
+  mode      String   // 'edit' | 'view'
+  createdAt DateTime @default(now())
+}
