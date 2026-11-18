@@ -137,9 +137,13 @@ const drawPointHandles = (ctx: CanvasRenderingContext2D, el: SketchElement, p: I
     ctx.restore();
     getMidpointsInScene(el).forEach(([x, y], i) => {
       ctx.beginPath();
-      ctx.fillStyle = p.transient.hoveredMidpoint === i ? 'rgba(105,101,219,0.5)' : 'rgba(105,101,219,0.18)';
+      ctx.fillStyle = p.transient.hoveredMidpoint === i ? 'rgba(105,101,219,0.55)' : 'rgba(105,101,219,0.25)';
       ctx.arc(x, y, (POINT_HANDLE_RADIUS_PX - 1) / zoom, 0, Math.PI * 2);
       ctx.fill();
+      ctx.save();
+      ctx.globalAlpha = 0.6;
+      ctx.stroke();
+      ctx.restore();
     });
   }
   pts.forEach(([x, y], i) => {

@@ -4,6 +4,7 @@ import type { AppState, SketchElement, SnapLine } from '@/types/appState';
 import type { CanvasPointerEvent, ToolContext } from '@/tools/types';
 import { getSnapTargets, snapPoint, snapToGrid, type SnapTargets } from '@/engine/transformations/snapping';
 import { viewportBounds } from '@/engine/rendering/renderScene';
+import { boundsContain, getElementBounds } from '@/engine/transformations/bounds';
 import { SNAP_DISTANCE_PX } from '@/engine/constants';
 
 export const store = () => useCanvasStore.getState();
@@ -12,9 +13,26 @@ export const visibleElements = () => selectors.visibleElements(useCanvasStore.ge
 
 /** after drawing an element: select it and return to the selection tool unless locked */
 export const finishCreation = (ctx: ToolContext, ids: string[]) => {
+  assignToFrames(ids);
   const s = store();
   s.setSelection(ids);
   if (!s.appState.toolLocked) ctx.setTool('selection');
+};
+
+/** newly created elements that lie fully inside a frame join it (one updateElements, no commit) */
+export const assignToFrames = (ids: string[]) => {
+  const s = store();
+  const frames = visibleElements().filter((f) => f.type === 'frame');
+  if (!frames.length) return;
+  const changes: Record<string, { frameId: string }> = {};
+  for (const id of ids) {
+    const el = s.elementsById[id];
+    if (!el || el.type === 'frame' || el.frameId) continue;
+    const b = getElementBounds(el);
+    const f = [...frames].reverse().find((fr) => boundsContain(getElementBounds(fr), b));
+    if (f) changes[id] = { frameId: f.id };
+  }
+  if (Object.keys(changes).length) s.updateElements(changes);
 };
 
 export const snapEnabled = (e: { modKey: boolean }) => appState().snapEnabled && !e.modKey;

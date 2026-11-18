@@ -5,6 +5,7 @@ import type { TextElement } from '@/types/appState';
 import { FONT_FAMILIES } from '@/engine/drawing/textMeasure';
 import { layoutBoundText, textSizeChanges } from '@/engine/drawing/boundText';
 import { DARK_FILTER } from '@/engine/rendering';
+import { assignToFrames } from '@/tools/shared';
 
 const store = () => useCanvasStore.getState();
 
@@ -34,7 +35,10 @@ export function finishTextEditing(id: string) {
     if (!el.text.trim()) {
       s.deleteElements([id]);
       if (el.containerId) s.setSelection([el.containerId]);
-    } else s.setSelection([el.containerId ?? el.id]);
+    } else {
+      s.setSelection([el.containerId ?? el.id]);
+      if (!el.containerId) assignToFrames([id]);
+    }
   }
   s.commit();
   const a = store().appState;
@@ -84,7 +88,8 @@ export function TextEditor() {
   const top = (el.y + scrollY) * zoom;
   const fontPx = el.fontSize * zoom;
   const width = Math.max(el.width, el.fontSize * 0.6) * zoom + fontPx * 0.6;
-  const height = Math.max(el.height, el.fontSize * el.lineHeight) * zoom;
+  // extra room so the textarea never scrolls its content (which would offset it from the canvas)
+  const height = Math.max(el.height, el.fontSize * el.lineHeight) * zoom + fontPx;
   const centered = el.textAlign === 'center' ? -fontPx * 0.3 : el.textAlign === 'right' ? -fontPx * 0.6 : 0;
 
   return (
@@ -98,6 +103,11 @@ export function TextEditor() {
       autoComplete="off"
       onPointerDown={(e) => e.stopPropagation()}
       onInput={(e) => applyText(el.id, (e.target as HTMLTextAreaElement).value)}
+      onScroll={(e) => {
+        const ta = e.target as HTMLTextAreaElement;
+        ta.scrollTop = 0;
+        ta.scrollLeft = 0;
+      }}
       onBlur={finish}
       onKeyDown={(e) => {
         e.stopPropagation();

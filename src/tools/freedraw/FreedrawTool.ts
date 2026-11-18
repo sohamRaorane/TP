@@ -9,7 +9,7 @@ import { linearFromScenePoints } from '@/engine/drawing/binding';
 import { pointsBounds, type P2 } from '@/engine/math';
 import { transient } from '@/engine/state/transient';
 import { SHAPE_RECOGNITION_HOLD_MS } from '@/engine/constants';
-import { store } from '@/tools/shared';
+import { assignToFrames, store } from '@/tools/shared';
 
 export class FreedrawTool implements Tool {
   type = 'freedraw' as const;
@@ -89,8 +89,9 @@ export class FreedrawTool implements Tool {
       const replacement = buildRecognizedElement(rec, el);
       s.deleteElements([id]);
       s.addElements([replacement]);
-    }
-    s.commit();
+      assignToFrames([replacement.id]);
+    } else assignToFrames([id]);
+    store().commit();
   }
 
   cancel() {

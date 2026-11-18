@@ -3,7 +3,7 @@ import type { BinaryFiles, SketchElement } from '@/types/appState';
 import type { Drawable } from 'roughjs/bin/core';
 import { getElementCenter, localBox } from '@/engine/math';
 import { getCommonBounds, type Bounds } from '@/engine/transformations/bounds';
-import { FONT_FAMILIES, splitLines } from '@/engine/drawing/textMeasure';
+import { FONT_FAMILIES, lineBaselineY, splitLines } from '@/engine/drawing/textMeasure';
 import { FRAME_LABEL_FONT } from '@/engine/constants';
 import { drawElements } from './renderScene';
 import { getElementShape, roughGenerator } from './shapes';
@@ -116,13 +116,14 @@ const elementToSvg = (doc: Document, el: SketchElement, files: BinaryFiles): Ele
       t.setAttribute('font-size', String(el.fontSize));
       t.setAttribute('fill', el.strokeColor);
       t.setAttribute('text-anchor', el.textAlign === 'center' ? 'middle' : el.textAlign === 'right' ? 'end' : 'start');
-      t.setAttribute('dominant-baseline', 'central');
+      const metricsOk = lineBaselineY(0, el.fontSize, el.fontFamily, el.lineHeight) !== null;
+      if (!metricsOk) t.setAttribute('dominant-baseline', 'central');
       t.setAttribute('style', 'white-space: pre');
       const lh = el.fontSize * el.lineHeight;
       splitLines(el.text).forEach((line, i) => {
         const span = doc.createElementNS(SVG_NS, 'tspan');
         span.setAttribute('x', fmt(textLineX(el)));
-        span.setAttribute('y', fmt(i * lh + lh / 2));
+        span.setAttribute('y', fmt(metricsOk ? lineBaselineY(i, el.fontSize, el.fontFamily, el.lineHeight)! : i * lh + lh / 2));
         span.textContent = line;
         t.appendChild(span);
       });

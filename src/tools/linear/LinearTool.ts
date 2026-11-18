@@ -146,8 +146,8 @@ export class LinearTool implements Tool {
       const endT = this.target(pts[pts.length - 1], m.id);
       if (endT && (endT.id !== m.startTarget || pts.length > 2)) applyBinding(m.id, 'end', endT);
     }
-    store().commit();
     finishCreation(ctx, [m.id]);
+    store().commit();
   }
 
   cancel(ctx: ToolContext) {

@@ -72,3 +72,35 @@ export function wrapText(text: string, fontSize: number, fontFamily: FontFamily,
   }
   return out.join('\n');
 }
+
+const metricsCache = new Map<string, { ascent: number; descent: number } | null>();
+/**
+ * Font ascent/descent (fontBoundingBox) used to place the baseline exactly
+ * where a CSS line box would (so canvas text matches the textarea editor).
+ */
+export function getFontMetrics(fontSize: number, fontFamily: FontFamily): { ascent: number; descent: number } | null {
+  const key = `${fontFamily}`;
+  if (!metricsCache.has(key)) {
+    const c = getCtx();
+    let m: { ascent: number; descent: number } | null = null;
+    if (c) {
+      c.font = fontString(100, fontFamily);
+      const tm = c.measureText('Mg');
+      if (typeof tm.fontBoundingBoxAscent === 'number' && tm.fontBoundingBoxAscent > 0)
+        m = { ascent: tm.fontBoundingBoxAscent / 100, descent: tm.fontBoundingBoxDescent / 100 };
+    }
+    // cache only once fonts are ready (metrics of the fallback font differ)
+    if (m && (typeof document === 'undefined' || !document.fonts || document.fonts.status === 'loaded')) metricsCache.set(key, m);
+    else return m ? { ascent: m.ascent * fontSize, descent: m.descent * fontSize } : null;
+  }
+  const m = metricsCache.get(key);
+  return m ? { ascent: m.ascent * fontSize, descent: m.descent * fontSize } : null;
+}
+
+/** baseline y of line i (relative to the text element top) */
+export function lineBaselineY(i: number, fontSize: number, fontFamily: FontFamily, lineHeight: number) {
+  const lh = fontSize * lineHeight;
+  const m = getFontMetrics(fontSize, fontFamily);
+  if (!m) return null;
+  return i * lh + lh / 2 + (m.ascent - m.descent) / 2;
+}

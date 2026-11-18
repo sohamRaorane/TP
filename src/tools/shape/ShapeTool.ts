@@ -81,8 +81,8 @@ export class ShapeTool implements Tool {
     const s = store();
     const el = s.elementsById[id];
     if (el && el.type === 'frame') adoptFrameChildren(el);
-    s.commit();
     finishCreation(ctx, [id]);
+    store().commit();
   }
 
   cancel(ctx: ToolContext) {

@@ -1,7 +1,7 @@
 // Draw one element onto a 2D context whose transform is already in scene units.
 import type { BinaryFiles, FrameElement, ImageElement, SketchElement, TextElement } from '@/types/appState';
 import { getElementCenter, localBox } from '@/engine/math';
-import { fontString, splitLines } from '@/engine/drawing/textMeasure';
+import { fontString, lineBaselineY, splitLines } from '@/engine/drawing/textMeasure';
 import { drawDrawable, getElementShape } from './shapes';
 import { getImage } from './imageCache';
 
@@ -25,10 +25,13 @@ const drawText = (ctx: CanvasRenderingContext2D, el: TextElement) => {
   ctx.font = fontString(el.fontSize, el.fontFamily);
   ctx.fillStyle = el.strokeColor;
   ctx.textAlign = el.textAlign;
-  ctx.textBaseline = 'middle';
   const lh = el.fontSize * el.lineHeight;
   const x = textLineX(el);
-  splitLines(el.text).forEach((line, i) => ctx.fillText(line, x, i * lh + lh / 2));
+  const metricsOk = lineBaselineY(0, el.fontSize, el.fontFamily, el.lineHeight) !== null;
+  ctx.textBaseline = metricsOk ? 'alphabetic' : 'middle';
+  splitLines(el.text).forEach((line, i) =>
+    ctx.fillText(line, x, metricsOk ? lineBaselineY(i, el.fontSize, el.fontFamily, el.lineHeight)! : i * lh + lh / 2),
+  );
 };
 
 const drawImage = (ctx: CanvasRenderingContext2D, el: ImageElement, files: BinaryFiles) => {
