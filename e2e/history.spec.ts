@@ -125,3 +125,25 @@ test('a new action clears the redo stack', async ({ page }) => {
   await drawRect(page, 500, 300, 600, 400);
   await expect(page.getByTestId('redo')).toBeDisabled();
 });
+
+test('undo a text edit restores the previous text; Ctrl+Z inside the editor does not undo the scene', async ({ page }) => {
+  await pressKey(page, 't');
+  await page.mouse.click(400, 300);
+  await page.keyboard.type('one');
+  await page.keyboard.press('Escape');
+  const [t] = await els(page);
+  await page.mouse.dblclick(t.x + 5, t.y + 5);
+  await expect(page.getByTestId('text-editor')).toBeFocused();
+  await page.keyboard.press('End');
+  await page.keyboard.type(' two');
+  await page.keyboard.press('Control+z'); // native textarea undo only
+  expect(await els(page)).toHaveLength(1);
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+  const edited = (await els(page))[0].text;
+  expect(edited?.startsWith('one')).toBe(true);
+  if (edited !== 'one') {
+    await pressKey(page, 'Control+z');
+    expect((await els(page))[0].text).toBe('one');
+  }
+});

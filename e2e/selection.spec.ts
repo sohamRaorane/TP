@@ -177,3 +177,26 @@ test('Escape clears the selection', async ({ page }) => {
   expect(await sel(page)).toEqual([]);
   expect(close(1, 1)).toBe(true);
 });
+
+test('Alt+drag duplicates and moves the copy', async ({ page }) => {
+  const r = await drawRect(page, 300, 300, 400, 380);
+  await page.keyboard.down('Alt');
+  await drag(page, { x: 350, y: 340 }, { x: 550, y: 340 });
+  await page.keyboard.up('Alt');
+  const all = await els(page);
+  expect(all).toHaveLength(2);
+  expect((await byId(page, r.id))!.x).toBe(300);
+  const copy = all.find((e) => e.id !== r.id)!;
+  expect(copy.x).toBeCloseTo(500, 0);
+});
+
+test('double-click into a group selects a single member; Escape exits the group', async ({ page }) => {
+  const { a, b } = await twoRects(page);
+  await pressKey(page, 'Control+a');
+  await pressKey(page, 'Control+g');
+  await page.mouse.click(900, 700);
+  await page.mouse.dblclick(300, 320);
+  expect(await sel(page)).toEqual([a.id]);
+  await pressKey(page, 'Escape');
+  expect(await sel(page)).toEqual([a.id, b.id].sort());
+});

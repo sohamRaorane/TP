@@ -123,14 +123,16 @@ test('space + drag pans; elements keep world positions', async ({ page }) => {
 });
 
 test('middle-button drag pans even with a drawing tool active', async ({ page }) => {
+  // Work around the Linux primary-selection paste bug (covered by the test.fail below): other parallel
+  // tests may leave text in PRIMARY, so swallow paste events before the app's document listener sees them.
+  await page.evaluate(() => window.addEventListener('paste', (e) => e.stopImmediatePropagation(), true));
   await pressKey(page, 'r');
   const v0 = await view(page);
   await drag(page, { x: 600, y: 400 }, { x: 680, y: 460 }, { button: 'middle' });
   const v1 = await view(page);
   expect(v1.scrollX - v0.scrollX).toBeCloseTo(80, 0);
   expect(v1.scrollY - v0.scrollY).toBeCloseTo(60, 0);
-  // no shape is drawn (text pasted from the X11 primary selection is covered by the next test)
-  expect((await els(page)).filter((e) => e.type !== 'text')).toHaveLength(0);
+  expect(await els(page)).toHaveLength(0);
   expect(v1.activeTool).toBe('rectangle');
 });
 
