@@ -8,8 +8,9 @@ WORKDIR /app/server
 # so the schema and prisma.config.ts must be present before `npm ci`.
 COPY server/package.json server/package-lock.json server/prisma.config.ts ./
 COPY server/prisma ./prisma
+COPY server/scripts ./scripts
 # tsx runs the TypeScript sources directly, so dev dependencies are needed.
-RUN npm ci --include=dev && npx prisma generate && npm cache clean --force
+RUN npm ci --include=dev && npm cache clean --force
 
 COPY shared /app/shared
 COPY server/src ./src
