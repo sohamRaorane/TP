@@ -2,7 +2,7 @@ import type { ErrorRequestHandler, RequestHandler } from 'express';
 import { HttpError } from '../services/errors';
 
 export const notFoundHandler: RequestHandler = (req, res) => {
-  res.status(404).json({ error: `Not found: ${req.method} ${req.path}` });
+  res.status(404).json({ error: `Not found: ${req.method} ${req.originalUrl.split('?')[0]}` });
 };
 
 interface BodyParserError extends Error {
