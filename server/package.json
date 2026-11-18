@@ -11,8 +11,8 @@
     "test:watch": "vitest",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
-    "generate": "prisma generate",
-    "postinstall": "prisma generate"
+    "generate": "node scripts/generate.mjs",
+    "postinstall": "node scripts/generate.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.1",
