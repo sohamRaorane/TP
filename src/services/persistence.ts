@@ -6,8 +6,8 @@
 // In a collaboration room the server persists the room, so (b) is skipped.
 // initPersistence() also runs initRouting() (URL -> room / drawing / recovery) once.
 import { useCanvasStore, selectors } from '@/store/canvasStore';
+import { renderThumbnail } from '@/engine/rendering/thumbnail';
 import { useCollaborationStore } from '@/store/collaborationStore';
-import type { BinaryFiles, SketchElement } from '@/types/appState';
 import { api, ApiError } from './api';
 import { snapshotRecovery, writeRecovery } from './recovery';
 import { onSaveRequested } from './saveSignal';
@@ -43,18 +43,12 @@ const setStatus = (saveStatus: ReturnType<typeof st>['appState']['saveStatus'], 
 const canServerSave = () => !st().appState.viewModeEnabled && !inRoom();
 const hasContent = () => selectors.visibleElements(st()).length > 0;
 
-// ---------------------------------------------------------------- thumbnail (engine, optional)
-const thumbModules = import.meta.glob('../engine/rendering/thumbnail.ts');
-type ThumbFn = (els: SketchElement[], files: BinaryFiles) => string;
+// ---------------------------------------------------------------- thumbnail
 async function makeThumbnail(): Promise<string | null> {
-  const loader = Object.values(thumbModules)[0];
-  if (!loader) return null;
   try {
-    const mod = (await loader()) as { renderThumbnail?: ThumbFn };
-    if (typeof mod.renderThumbnail !== 'function') return null;
     const s = st();
     const els = selectors.visibleElements(s);
-    return els.length ? mod.renderThumbnail(els, s.files) : null;
+    return els.length ? renderThumbnail(els, s.files) : null;
   } catch {
     return null;
   }
