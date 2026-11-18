@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { parseCorsOrigin } from '../config';
-import { TEST_DATABASE_URL } from '../test/helpers';
+import { POSTGRES_AVAILABLE, TEST_DATABASE_URL } from '../test/helpers';
 import { createRepository } from './storage';
 
 const dirs: string[] = [];
@@ -20,7 +20,7 @@ afterEach(async () => {
 const UNREACHABLE = 'postgresql://sketch:sketch@127.0.0.1:1/nope';
 
 describe('storage selection', () => {
-  it('auto uses Postgres when reachable (and applies migrations)', async () => {
+  it.skipIf(!POSTGRES_AVAILABLE)('auto uses Postgres when reachable (and applies migrations)', async () => {
     const repo = await createRepository({ storage: 'auto', databaseUrl: TEST_DATABASE_URL, dataDir: await tmp() }, () => {});
     expect(repo.kind).toBe('postgres');
     expect(await repo.ping()).toBe(true);

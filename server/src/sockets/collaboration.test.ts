@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { SketchElement } from '../../../shared/element';
 import type { ClientToServerEvents, ServerToClientEvents } from '../../../shared/protocol';
 import type { CreateServerOptions } from '../app';
-import { makeElement, scene, startTestServer, type Backend } from '../test/helpers';
+import { BACKENDS, DEFAULT_BACKEND, makeElement, scene, startTestServer, type Backend } from '../test/helpers';
 
 type Client = ClientSocket<ServerToClientEvents, ClientToServerEvents>;
 type TestServer = Awaited<ReturnType<typeof startTestServer>>;
@@ -12,7 +12,7 @@ type JoinResult = Parameters<Parameters<ClientToServerEvents['room:join']>[1]>[0
 let server: TestServer | undefined;
 const clients: Client[] = [];
 
-async function start(backend: Backend = 'postgres', opts: CreateServerOptions = {}) {
+async function start(backend: Backend = DEFAULT_BACKEND, opts: CreateServerOptions = {}) {
   server = await startTestServer(backend, { persistDebounceMs: 50, persistMaxWaitMs: 200, roomEvictMs: 100, ...opts });
   return server;
 }
@@ -290,7 +290,7 @@ describe('collaboration (Socket.IO)', () => {
   });
 
   it('rate-limits scene:update per socket', async () => {
-    await start('postgres', { maxUpdatesPerSecond: 3 });
+    await start(DEFAULT_BACKEND, { maxUpdatesPerSecond: 3 });
     const d = await createDrawing();
     const [a, b] = [await connect(), await connect()];
     await join(a, d.id, 'a');
@@ -316,7 +316,7 @@ describe('collaboration (Socket.IO)', () => {
     expect(msg.elements[0]).toMatchObject({ id: 'r1', x: 9 });
   });
 
-  describe.each<Backend>(['postgres', 'file'])('persistence (%s)', (backend) => {
+  describe.each<Backend>(BACKENDS)('persistence (%s)', (backend) => {
     it('persists room changes to the drawing after the debounce', async () => {
       await start(backend);
       const r1 = makeElement({ id: 'r1' });
@@ -355,7 +355,7 @@ describe('collaboration (Socket.IO)', () => {
   });
 
   it('flushes dirty rooms on close (graceful shutdown)', async () => {
-    const s = await start('postgres', { persistDebounceMs: 60_000, persistMaxWaitMs: 60_000 });
+    const s = await start(DEFAULT_BACKEND, { persistDebounceMs: 60_000, persistMaxWaitMs: 60_000 });
     const d = await createDrawing();
     const a = await connect();
     await join(a, d.id, 'a');
