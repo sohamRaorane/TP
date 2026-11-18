@@ -44,6 +44,7 @@ export function throttle<A extends unknown[]>(fn: (...args: A) => void, ms: numb
   let pendingArgs: A | null = null;
   const th = (...args: A) => {
     const now = Date.now();
+    if (now < last) last = 0; // clock moved backwards
     const remaining = ms - (now - last);
     if (remaining <= 0 && !t) {
       last = now;
@@ -64,6 +65,7 @@ export function throttle<A extends unknown[]>(fn: (...args: A) => void, ms: numb
     if (t) clearTimeout(t);
     t = null;
     pendingArgs = null;
+    last = 0;
   };
   return th;
 }
