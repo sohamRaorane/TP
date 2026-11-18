@@ -56,6 +56,8 @@ export interface BaseElement {
   /** innermost group first, outermost last */
   groupIds: string[];
   frameId: string | null;
+  /** fractional z-order key (see shared/fractionalIndex.ts); ascending = back to front */
+  index?: string;
   boundElements: BoundElementRef[];
   link: string | null;
   /** rough.js seed so shapes look identical on every render/client */

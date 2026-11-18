@@ -36,11 +36,12 @@ describe('outgoing diff', () => {
   it('keeps sending a local element that won against a stale remote one', () => {
     const local = bump(bump(rect(0, 0)));
     useCanvasStore.getState().addElements([local]);
+    const stored = useCanvasStore.getState().elementsById[local.id];
     const known: VersionMap = new Map();
-    const stale = { ...local, version: 1, x: -1 };
+    const stale = { ...stored, version: 1, x: -1 };
     useCanvasStore.getState().applyRemoteElements([stale]);
     markReceived(known, [stale], useCanvasStore.getState().elementsById);
-    expect(collectChanged(useCanvasStore.getState().elements, known)).toEqual([local]);
+    expect(collectChanged(useCanvasStore.getState().elements, known)).toEqual([stored]);
   });
 });
 

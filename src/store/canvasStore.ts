@@ -17,6 +17,7 @@ import type {
   SketchElement,
 } from '@/types/appState';
 import { shouldAcceptRemote } from '@shared/element';
+import { appendKey, repairIndices, sortByIndex } from '@shared/fractionalIndex';
 import { useHistoryStore, type HistoryEntry } from './historyStore';
 
 export const randomInt = () => Math.floor(Math.random() * 2 ** 31);
@@ -133,7 +134,15 @@ export const useCanvasStore = create<CanvasStore>()(
 
     addElements: (els, opts) => {
       if (!els.length) return;
-      const elements = [...get().elements, ...els];
+      // new elements go on top: fresh z-order keys after the current topmost
+      const cur = get().elements;
+      let prev = cur.length ? cur[cur.length - 1].index : undefined;
+      const keyed = els.map((el) => {
+        prev = appendKey(prev);
+        return { ...el, index: prev } as SketchElement;
+      });
+      els = keyed;
+      const elements = [...cur, ...keyed];
       set((s) => ({
         elements,
         elementsById: indexById(elements),
@@ -210,6 +219,8 @@ export const useCanvasStore = create<CanvasStore>()(
     },
 
     replaceScene: (els, files, opts) => {
+      const fixes = repairIndices(els);
+      if (Object.keys(fixes).length) els = els.map((el) => (fixes[el.id] ? ({ ...el, index: fixes[el.id] } as SketchElement) : el));
       set((s) => ({
         elements: els,
         elementsById: indexById(els),
@@ -223,14 +234,23 @@ export const useCanvasStore = create<CanvasStore>()(
 
     reorder: (ids, dir) => {
       const set_ = new Set(ids);
+      // give moved elements new z-order keys between their new neighbours (synced to peers)
+      const rekey = (order: SketchElement[], moved: Set<string>) => {
+        const cleared = order.map((el) => (moved.has(el.id) ? { id: el.id } : el));
+        const fixes = repairIndices(cleared);
+        const changes: Record<string, ElementChanges> = {};
+        for (const [id, index] of Object.entries(fixes)) changes[id] = { index };
+        const byId = Object.fromEntries(order.map((el) => [el.id, el]));
+        const next = order.map((el) => byId[el.id]);
+        set((s) => ({ elements: next, elementsById: indexById(next), sceneNonce: s.sceneNonce + 1, localNonce: s.localNonce + 1 }));
+        get().updateElements(changes);
+      };
       const els = [...get().elements];
       if (dir === 'front' || dir === 'back') {
         const moving = els.filter((e) => set_.has(e.id));
         const rest = els.filter((e) => !set_.has(e.id));
         const next = dir === 'front' ? [...rest, ...moving] : [...moving, ...rest];
-        set((s) => ({ elements: next, elementsById: indexById(next), sceneNonce: s.sceneNonce + 1, localNonce: s.localNonce + 1 }));
-        // bump versions so remote peers adopt new order (order synced via full list index)
-        get().updateElements(Object.fromEntries(ids.map((id) => [id, {}])));
+        rekey(next, set_);
         return;
       }
       if (dir === 'forward') {
@@ -253,8 +273,7 @@ export const useCanvasStore = create<CanvasStore>()(
           }
         }
       }
-      set((s) => ({ elements: els, elementsById: indexById(els), sceneNonce: s.sceneNonce + 1, localNonce: s.localNonce + 1 }));
-      get().updateElements(Object.fromEntries(ids.map((id) => [id, {}])));
+      rekey(els, set_);
     },
 
     applyRemoteElements: (incoming) => {
@@ -269,6 +288,8 @@ export const useCanvasStore = create<CanvasStore>()(
       const elements = get().elements.map((el) => accepted[el.id] ?? el);
       const existing = new Set(elements.map((e) => e.id));
       for (const el of incoming) if (accepted[el.id] && !existing.has(el.id)) elements.push(el);
+      const ordered = sortByIndex(elements);
+      if (ordered !== elements) elements.splice(0, elements.length, ...ordered);
       set((s) => {
         const sel = { ...s.appState.selectedElementIds };
         let selChanged = false;
@@ -346,6 +367,8 @@ function applyHistory(
     const pos = new Map(order.map((id, i) => [id, i]));
     elements = [...elements].sort((a, b) => (pos.get(a.id) ?? 1e9) - (pos.get(b.id) ?? 1e9));
   }
+  // restored elements carry their old z-order keys; keys are authoritative
+  elements = sortByIndex(elements);
   const sel = dir === 'undo' ? entry.selectionBefore : entry.selectionAfter;
   const byId = indexById(elements);
   set((s) => ({
