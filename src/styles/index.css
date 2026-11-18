@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@import "@fontsource/kalam/400.css";
+
+:root { --font-hand: 'Kalam', 'Comic Sans MS', cursive; }
+html, body, #root { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
+body { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; }
