@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts",
-    "typecheck": "tsc --noEmit",
+    "start": "node --import tsx src/index.ts",
+    "typecheck": "tsc --noEmit -p .",
     "test": "vitest run",
+    "test:watch": "vitest",
     "db:push": "prisma db push",
+    "db:migrate": "prisma migrate deploy",
     "generate": "prisma generate",
     "postinstall": "prisma generate"
   },

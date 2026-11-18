@@ -1,0 +1,8 @@
+# BuildKit picks this up for `docker build -f server/Dockerfile .` (context = repo root)
+**/node_modules
+server/src/generated
+server/data
+.git
+e2e
+test-results
+playwright-report
