@@ -2,7 +2,7 @@
 import type { ToolType } from '@/types/appState';
 import { useCanvasStore } from '@/store/canvasStore';
 import { actions } from '@/services/actions';
-import { isEditableTarget } from '@/utils/dom';
+import { isEditableTarget, isRangeTarget } from '@/utils/dom';
 
 const TOOL_KEYS: Record<string, ToolType> = {
   v: 'selection', '1': 'selection',
@@ -119,6 +119,7 @@ export function handleKeyDown(e: KeyboardEvent, ctx: KeyContext = { pointerDown:
     return actions.deleteSelected(), done();
   }
   if (e.key.startsWith('Arrow')) {
+    if (isRangeTarget(e.target)) return false;
     if (!Object.keys(a.selectedElementIds).length) return false;
     const step = e.shiftKey ? 10 : 1;
     const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;

@@ -259,6 +259,25 @@ export const collab = {
       cs().set({ status: reason === 'io client disconnect' ? 'disconnected' : 'reconnecting' });
     });
     subscribeStores();
+    // The browser knows about network loss long before a socket ping times out:
+    // drop the transport right away (socket.io then reconnects and resyncs) and show it.
+    if (typeof window !== 'undefined') {
+      const onOffline = () => {
+        if (socket !== s) return;
+        cs().set({ status: 'reconnecting' });
+        try { s.io.engine?.close(); } catch { /* already closed */ }
+      };
+      const onOnline = () => {
+        if (socket !== s) return;
+        if (!s.connected) s.connect();
+      };
+      window.addEventListener('offline', onOffline);
+      window.addEventListener('online', onOnline);
+      unsubs.push(() => {
+        window.removeEventListener('offline', onOffline);
+        window.removeEventListener('online', onOnline);
+      });
+    }
     const first = new Promise<void>((resolve, reject) => {
       let initial = true;
       s.on('connect', () => {
