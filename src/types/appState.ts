@@ -32,6 +32,7 @@ export type DialogType =
   | 'versions'
   | 'dashboard'
   | 'stats'
+  | 'textToDiagram'
   | null;
 
 export interface CurrentItemStyle {
