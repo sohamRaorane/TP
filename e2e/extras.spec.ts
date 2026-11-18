@@ -151,16 +151,14 @@ test('minimap toggles via the footer button', async ({ page }) => {
   await expect(page.getByTestId('minimap')).toHaveCount(0);
 });
 
-// PRODUCT BUG: Alt+M is advertised (footer tooltip, command palette) but hooks/keyboard.ts has no
+// REGRESSION TEST (bug found by e2e, now fixed): Alt+M is advertised (footer tooltip, command palette) but hooks/keyboard.ts has no
 // KeyM branch in the Alt shortcuts block (same for Alt+H / Alt+V distribute).
 test('Alt+M toggles the minimap', async ({ page }) => {
-  test.fail();
   await pressKey(page, 'Alt+m');
   await expect(page.getByTestId('minimap')).toBeVisible({ timeout: 2000 });
 });
 
 test('Alt+H distributes three shapes horizontally', async ({ page }) => {
-  test.fail();
   await drawRect(page, 200, 300, 260, 360);
   await drawRect(page, 300, 300, 360, 360);
   await drawRect(page, 600, 300, 660, 360);

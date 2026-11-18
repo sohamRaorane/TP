@@ -197,7 +197,7 @@ function LinkButton({ els }: { els: SketchElement[] }) {
   const [draft, setDraft] = useState(current);
   return (
     <>
-      <Tooltip label="Link" shortcut={kbd('Ctrl+K')}>
+      <Tooltip label="Link">
         <button ref={ref} type="button" className={`sb-opt ${open || current ? 'is-active' : ''}`} aria-label="Edit link" data-testid="action-link" onClick={() => { setDraft(current); setOpen((o) => !o); }}>
           <Link size={16} />
         </button>

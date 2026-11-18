@@ -123,7 +123,7 @@ test('space + drag pans; elements keep world positions', async ({ page }) => {
 });
 
 test('middle-button drag pans even with a drawing tool active', async ({ page }) => {
-  // Work around the Linux primary-selection paste bug (covered by the test.fail below): other parallel
+  // Work around the Linux primary-selection paste bug (regression-tested below): other parallel
   // tests may leave text in PRIMARY, so swallow paste events before the app's document listener sees them.
   await page.evaluate(() => window.addEventListener('paste', (e) => e.stopImmediatePropagation(), true));
   await pressKey(page, 'r');
@@ -136,10 +136,9 @@ test('middle-button drag pans even with a drawing tool active', async ({ page })
   expect(v1.activeTool).toBe('rectangle');
 });
 
-// PRODUCT BUG (Linux): a middle-button pan also triggers Chrome's X11 "primary selection" paste,
+// REGRESSION TEST (bug found by e2e, now fixed) (Linux): a middle-button pan also triggers Chrome's X11 "primary selection" paste,
 // which the document paste handler (services/clipboard.ts) turns into a text element.
 test('middle-button pan does not paste the primary selection', async ({ page }) => {
-  test.fail();
   await page.getByTestId('drawing-name').click();
   await page.getByTestId('drawing-name-input').selectText(); // puts "Untitled drawing" in PRIMARY
   await page.getByTestId('drawing-name-input').press('Escape');

@@ -105,6 +105,9 @@ export function handleKeyDown(e: KeyboardEvent, ctx: KeyContext = { pointerDown:
     if (e.code === 'KeyR' && !e.shiftKey) return actions.toggleViewMode(), done();
     if (e.code === 'KeyD' && e.shiftKey) return actions.toggleTheme(), done();
     if (e.code === 'Slash') return actions.toggleDialog('stats'), done();
+    if (e.code === 'KeyM' && !e.shiftKey) return actions.toggleMinimap(), done();
+    if (e.code === 'KeyH' && !e.shiftKey) return actions.distribute('horizontal'), done();
+    if (e.code === 'KeyV' && !e.shiftKey) return actions.distribute('vertical'), done();
     return false;
   }
   if (mod || e.altKey) return false;

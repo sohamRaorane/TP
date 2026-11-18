@@ -96,7 +96,10 @@ export interface FreedrawElement extends BaseElement {
 
 export interface TextElement extends BaseElement {
   type: 'text';
+  /** displayed text; for container labels this is `originalText` word-wrapped to the container */
   text: string;
+  /** unwrapped source text of container labels (what the user typed) */
+  originalText?: string;
   fontSize: number;
   fontFamily: FontFamily;
   textAlign: TextAlign;

@@ -85,11 +85,25 @@ describe('bound arrows in the store', () => {
 });
 
 describe('bound text', () => {
-  it('centers the label and grows the container to fit', () => {
+  it('wraps the label to the container width, grows only its height, and keeps the source text', () => {
+    const c = rect(0, 0, 160, 30);
+    const t = text(0, 0, 'a fairly long label that needs wrapping', { containerId: c.id } as never) as TextElement;
+    const ch = layoutBoundText(c, t);
+    expect(ch[c.id].height as number).toBeGreaterThan(30);
+    expect(ch[c.id].width ?? 160).toBe(160);
+    expect(String(ch[t.id].text)).toContain('\n');
+    expect(ch[t.id].originalText).toBe('a fairly long label that needs wrapping');
+    expect(ch[t.id].width as number).toBeLessThanOrEqual(160 - 16);
+    // re-layout in a wider container un-wraps from the original text
+    const wide = { ...c, width: 1000, height: 200 } as SketchElement;
+    const t2 = { ...t, ...ch[t.id] } as TextElement;
+    expect(String(layoutBoundText(wide, t2)[t.id].text)).not.toContain('\n');
+  });
+
+  it('centers the label in its container', () => {
     const c = rect(0, 0, 40, 30);
     const t = text(0, 0, 'a fairly long label', { containerId: c.id } as never) as TextElement;
     const ch = layoutBoundText(c, t);
-    expect(ch[c.id].width as number).toBeGreaterThan(40);
     const nc = { ...c, ...ch[c.id] } as SketchElement;
     const nt = { ...t, ...ch[t.id] } as TextElement;
     expect(nt.x + nt.width / 2).toBeCloseTo(nc.x + nc.width / 2);

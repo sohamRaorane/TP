@@ -314,7 +314,8 @@ export class CanvasController {
     else if (e.deltaMode === 2) { dx *= a.height; dy *= a.height; }
     if (e.ctrlKey || e.metaKey) {
       const p = this.local(e);
-      const clamped = Math.max(-50, Math.min(50, dy));
+      // ~10% per mouse-wheel notch; small trackpad pinch deltas pass through unchanged
+      const clamped = Math.max(-10, Math.min(10, dy));
       const factor = Math.exp(-clamped * 0.01);
       const v = zoomAt(a, a.zoom * factor, p.x, p.y);
       store().setAppState(v);

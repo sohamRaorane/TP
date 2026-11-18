@@ -15,7 +15,7 @@ const applyText = (id: string, value: string) => {
   const el = s.elementsById[id];
   if (!el || el.type !== 'text') return;
   if (el.containerId) {
-    s.updateElements({ [id]: { text: value } });
+    s.updateElements({ [id]: { text: value, originalText: value } });
     const s2 = store();
     const c = s2.elementsById[el.containerId];
     const t = s2.elementsById[id] as TextElement;
@@ -61,7 +61,7 @@ export function TextEditor() {
     if (!ta || !editingId) return;
     done.current = false;
     const t = store().elementsById[editingId];
-    ta.value = t && t.type === 'text' ? t.text : '';
+    ta.value = t && t.type === 'text' ? (t.originalText ?? t.text) : '';
     // focus after the pointer event that started editing has finished
     const raf = requestAnimationFrame(() => {
       ta.focus();
