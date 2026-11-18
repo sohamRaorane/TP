@@ -37,6 +37,7 @@ let unsubs: Array<() => void> = [];
 let laserTimer: ReturnType<typeof setInterval> | null = null;
 let applyingFollow = false;
 let joinedOnce = false;
+let joinedDrawingId: string | null = null;
 
 const cs = () => useCollaborationStore.getState();
 const canvas = () => useCanvasStore.getState();
@@ -182,6 +183,7 @@ function join(): Promise<void> {
         cs().set({ status: 'disconnected' });
         return reject(new Error(msg));
       }
+      joinedDrawingId = res.drawingId;
       cs().set({ status: 'connected', role: res.role, roomId });
       if (res.role === 'view') canvas().setAppState({ viewModeEnabled: true });
       else if (res.drawingId) canvas().setAppState({ drawingId: res.drawingId });
@@ -288,6 +290,7 @@ export const collab = {
     }
     socket = null;
     currentRoom = null;
+    joinedDrawingId = null;
     scheduleFlush.cancel();
     unsubs.forEach((u) => u());
     unsubs = [];
@@ -333,6 +336,10 @@ export const collab = {
 
   get roomId() {
     return currentRoom;
+  },
+  /** drawing behind the joined room (also for view-only rooms) */
+  get drawingId() {
+    return joinedDrawingId;
   },
   isConnected,
 };
