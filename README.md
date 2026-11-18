@@ -10,6 +10,9 @@ All code and assets are our own; Excalidraw is only the visual and functional re
 
 You need **Node.js 20+**. PostgreSQL is optional: without it, the server stores drawings in local JSON files.
 
+**Windows:** double-click **`start-windows.bat`**. It installs dependencies on the first run, starts everything and opens the browser.
+
+**Any OS:**
 ```bash
 npm run setup      # installs client + server dependencies
 npm run dev:all    # starts API server (:4000) and client (:5173)
