@@ -4,7 +4,7 @@ import type { BinaryFiles, SceneData, SketchElement } from './element';
 // ---------------------------------------------------------------- REST
 // All JSON. Base path /api. Errors: { error: string, details?: unknown } with 4xx/5xx.
 //
-// GET    /api/health                              -> { ok: true, db: boolean }
+// GET    /api/health                              -> { ok: true, db: boolean, storage: 'postgres' | 'file' }
 // GET    /api/drawings?search=&limit=&offset=     -> { drawings: DrawingSummary[], total: number }
 // POST   /api/drawings        body CreateDrawing  -> Drawing (201)
 // GET    /api/drawings/:id                        -> Drawing
@@ -99,6 +99,7 @@ export interface ClientToServerEvents {
 export interface ServerToClientEvents {
   /** full scene on join or on 'scene:sync' */
   'scene:init': (p: { elements: SketchElement[]; files: BinaryFiles }) => void;
+  /** from = sender socket id, or 'server' for REST edits / version restores */
   'scene:update': (p: { elements: SketchElement[]; from: string }) => void;
   'files:add': (p: { files: BinaryFiles; from: string }) => void;
   'presence': (p: { users: Collaborator[] }) => void;
