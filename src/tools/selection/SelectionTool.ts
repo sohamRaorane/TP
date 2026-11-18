@@ -18,7 +18,7 @@ import {
   type ResizeHandle,
 } from '@/engine/transformations/handles';
 import { resizeMultipleElements, resizeSingleElement } from '@/engine/transformations/resize';
-import { rotateElements, rotateSingleElement, rotationDelta } from '@/engine/transformations/rotate';
+import { rotateElements, rotationDelta } from '@/engine/transformations/rotate';
 import { snapBounds, snapToGrid, type SnapTargets } from '@/engine/transformations/snapping';
 import { getSelectionUi } from '@/engine/rendering/interactive';
 import {
@@ -30,7 +30,7 @@ import {
 } from '@/engine/drawing/binding';
 import { canHaveLabel, updateBoundTexts } from '@/engine/drawing/boundText';
 import { createTextAt, editContainerLabel } from '@/tools/shared/text';
-import { getElementCenter, snapAngle, type P2 } from '@/engine/math';
+import { getElementCenter, localBox, localToScene, normalizeAngle, snapAngle, type P2 } from '@/engine/math';
 import { transient } from '@/engine/state/transient';
 import { DRAG_THRESHOLD_PX } from '@/engine/constants';
 import {
@@ -67,11 +67,26 @@ type Mode =
       primary: string[];
       bounds: Bounds;
       targets: SnapTargets;
+      /** pointer -> exact element edge offset (handles sit on the padded frame) */
+      offset: { x: number; y: number };
     }
   | { kind: 'rotate'; origs: Map<string, SketchElement>; primary: string[]; center: { x: number; y: number }; start: CanvasPointerEvent }
   | { kind: 'point'; id: string; index: number; orig: LinearElement };
 
 const HIT_TOL_PX = 8;
+
+/** the exact element (or bounds) point a resize handle controls, in scene coords */
+const handleEdgePoint = (handle: ResizeHandle, el: SketchElement | null, b: Bounds): P2 => {
+  if (el) {
+    const box = localBox(el);
+    const lx = box.ox + (handle.includes('w') ? 0 : handle.includes('e') ? box.w : box.w / 2);
+    const ly = box.oy + (handle.includes('n') ? 0 : handle.includes('s') ? box.h : box.h / 2);
+    return localToScene(el, lx, ly);
+  }
+  const x = handle.includes('w') ? b.minX : handle.includes('e') ? b.maxX : (b.minX + b.maxX) / 2;
+  const y = handle.includes('n') ? b.minY : handle.includes('s') ? b.maxY : (b.minY + b.maxY) / 2;
+  return [x, y];
+};
 
 /** ids plus arrows bound to them (excluded from snapping while moving) */
 const withBoundArrows = (ids: Set<string>, byId: Record<string, SketchElement>) => {
@@ -179,7 +194,16 @@ export class SelectionTool implements Tool {
       this.mode = { kind: 'rotate', origs, primary: ids, center, start: e };
       return;
     }
-    this.mode = { kind: 'resize', handle, origs, primary: ids, bounds, targets: collectSnapTargets(withBoundArrows(all, s.elementsById)) };
+    const anchor = handleEdgePoint(handle, selected.length === 1 ? selected[0] : null, bounds);
+    this.mode = {
+      kind: 'resize',
+      handle,
+      origs,
+      primary: ids,
+      bounds,
+      targets: collectSnapTargets(withBoundArrows(all, s.elementsById)),
+      offset: { x: anchor[0] - e.scene.x, y: anchor[1] - e.scene.y },
+    };
   }
 
   // ------------------------------------------------------------ pointer move
@@ -338,7 +362,7 @@ export class SelectionTool implements Tool {
 
   private doResize(m: Extract<Mode, { kind: 'resize' }>, e: CanvasPointerEvent) {
     const s = store();
-    let px = e.scene.x, py = e.scene.y;
+    let px = e.scene.x + m.offset.x, py = e.scene.y + m.offset.y;
     const single = m.primary.length === 1 ? m.origs.get(m.primary[0])! : null;
     if (!single || !single.angle) {
       const p = snapScenePoint(px, py, e, m.targets);
@@ -365,9 +389,12 @@ export class SelectionTool implements Tool {
     let changes: Record<string, ElementChanges>;
     if (m.primary.length === 1) {
       const el = m.origs.get(m.primary[0])!;
-      const single = rotateSingleElement(el, e.scene.x, e.scene.y, e.shiftKey);
-      changes = { [el.id]: single };
-      const delta = (single.angle as number) - el.angle;
+      // relative to the grab point so grabbing slightly off the handle doesn't jump
+      let angle = el.angle + rotationDelta(m.center.x, m.center.y, m.start.scene.x, m.start.scene.y, e.scene.x, e.scene.y, false);
+      if (e.shiftKey) angle = snapAngle(angle);
+      angle = normalizeAngle(angle);
+      changes = { [el.id]: { angle } };
+      const delta = angle - el.angle;
       // dependents (labels) rotate with it
       const deps = [...m.origs.values()].filter((d) => d.id !== el.id);
       if (deps.length) Object.assign(changes, rotateElements(deps, m.center.x, m.center.y, delta));
