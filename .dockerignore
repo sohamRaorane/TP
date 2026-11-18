@@ -1,0 +1,9 @@
+node_modules
+server/node_modules
+server/src/generated
+server/data
+dist
+.git
+.sync
+test-results
+playwright-report
