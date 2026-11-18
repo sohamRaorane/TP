@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 vi.mock('@/engine/rendering', () => ({ exportToCanvas: vi.fn(), exportToSvg: vi.fn() }));
+vi.mock('@/engine/rendering/thumbnail', () => ({ renderThumbnail: () => null }));
 
 import { initPersistence, saveNow, __resetPersistenceForTests } from './persistence';
 import { initRouting, __resetRouting } from './routing';
