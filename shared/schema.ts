@@ -26,6 +26,7 @@ const base = {
   locked: z.boolean(),
   groupIds: z.array(z.string()),
   frameId: z.string().nullable(),
+  index: z.string().max(500).optional(),
   boundElements: z.array(z.object({ id: z.string(), type: z.enum(['arrow', 'text']) })),
   link: z.string().max(2000).nullable(),
   seed: z.number().int(),

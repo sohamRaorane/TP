@@ -1,4 +1,5 @@
 import type { Server, Socket } from 'socket.io';
+import { sortByIndex } from '../../../shared/fractionalIndex';
 import { z } from 'zod';
 import type { BinaryFiles, SceneData, SketchElement } from '../../../shared/element';
 import { shouldAcceptRemote } from '../../../shared/element';
@@ -259,7 +260,7 @@ export class CollaborationHub {
   }
 
   private sceneOf(room: RoomState): { elements: SketchElement[]; files: BinaryFiles } {
-    return { elements: room.order.map((id) => room.elements.get(id)!), files: room.files };
+    return { elements: sortByIndex(room.order.map((id) => room.elements.get(id)!)), files: room.files };
   }
 
   /** Reconciles elements into the room; returns those that won. */

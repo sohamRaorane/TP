@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events';
+import { sortByIndex } from '../../../shared/fractionalIndex';
 import type { BinaryFiles, SceneData, SketchElement } from '../../../shared/element';
 import type {
   Drawing,
@@ -201,7 +202,7 @@ export class DrawingService extends EventEmitter<DrawingServiceEvents> {
       }
     }
     ordered.push(...byId.values());
-    const kept = pruneTombstones(ordered, this.opts.tombstoneTtlMs);
+    const kept = pruneTombstones(sortByIndex(ordered), this.opts.tombstoneTtlMs);
     const data: SceneData = {
       ...current.data,
       elements: kept,
