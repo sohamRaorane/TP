@@ -1,0 +1,94 @@
+/* Sketchboard design tokens (Excalidraw-like visual language). */
+:root {
+  --font-hand: 'Kalam', 'Comic Sans MS', cursive;
+  --ui-font: 'Assistant', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --mono-font: ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, monospace;
+
+  --color-primary: #6965db;
+  --color-primary-darker: #5b57d1;
+  --color-primary-darkest: #4a47b1;
+  --color-primary-light: #e0dfff;
+  --color-primary-hover: #5753d0;
+  --color-on-primary: #ffffff;
+
+  --color-surface-lowest: #ffffff;
+  --color-surface-low: #ececf4;
+  --color-surface-mid: #f2f2f7;
+  --color-surface-high: #f1f0ff;
+
+  --color-on-surface: #1b1b1f;
+  --color-muted: #5c5c5c;
+  --color-muted-2: #999999;
+  --color-border: #e8e8ee;
+  --color-border-strong: #d6d6de;
+  --color-danger: #db6965;
+  --color-danger-strong: #d02f2a;
+  --color-danger-bg: #fff0f0;
+  --color-success: #2f9e44;
+
+  --island-bg: #ffffff;
+  --island-shadow: 0px 0px 0.93px rgba(0, 0, 0, 0.17), 0px 0px 3.13px rgba(0, 0, 0, 0.08), 0px 7px 14px rgba(0, 0, 0, 0.05);
+  --popup-shadow: 0px 0px 0.93px rgba(0, 0, 0, 0.17), 0px 0px 3.13px rgba(0, 0, 0, 0.08), 0px 12px 28px rgba(0, 0, 0, 0.12);
+  --island-radius: 8px;
+  --dialog-radius: 12px;
+  --backdrop: rgba(18, 18, 18, 0.2);
+
+  --icon: #1b1b1f;
+  --button-bg: var(--color-surface-mid);
+  --button-hover: var(--color-surface-high);
+  --button-active-bg: var(--color-primary-light);
+  --button-active-icon: var(--color-primary-darker);
+  --button-active-border: var(--color-primary-darker);
+  --keybinding: #b0b0b8;
+  --input-bg: #ffffff;
+  --input-border: #d6d6de;
+  --tooltip-bg: #1b1b1f;
+  --tooltip-fg: #ffffff;
+  --scrollbar: #c8c8d4;
+  --hint: #b8b8b8;
+  --canvas-bg: #ffffff;
+}
+
+.dark {
+  --color-primary: #a8a5ff;
+  --color-primary-darker: #b2aeff;
+  --color-primary-darkest: #beb9ff;
+  --color-primary-light: #4f4d6f;
+  --color-primary-hover: #bbb8ff;
+  --color-on-primary: #121212;
+
+  --color-surface-lowest: #121212;
+  --color-surface-low: #232329;
+  --color-surface-mid: #2e2d39;
+  --color-surface-high: #363541;
+
+  --color-on-surface: #e3e3e8;
+  --color-muted: #a4a4ad;
+  --color-muted-2: #7c7c86;
+  --color-border: #34343c;
+  --color-border-strong: #45454f;
+  --color-danger: #ffa8a5;
+  --color-danger-strong: #ff8383;
+  --color-danger-bg: #3d2626;
+
+  --island-bg: #232329;
+  --island-shadow: 0px 0px 0.93px rgba(0, 0, 0, 0.4), 0px 0px 3.13px rgba(0, 0, 0, 0.25), 0px 7px 14px rgba(0, 0, 0, 0.3);
+  --popup-shadow: 0px 0px 0.93px rgba(0, 0, 0, 0.5), 0px 0px 3.13px rgba(0, 0, 0, 0.3), 0px 12px 28px rgba(0, 0, 0, 0.45);
+  --backdrop: rgba(0, 0, 0, 0.45);
+
+  --icon: #e3e3e8;
+  --button-bg: #2e2d39;
+  --button-hover: #363541;
+  --button-active-bg: #403e6a;
+  --button-active-icon: #a8a5ff;
+  --button-active-border: #a8a5ff;
+  --keybinding: #6f6f7a;
+  --input-bg: #121212;
+  --input-border: #45454f;
+  --tooltip-bg: #e3e3e8;
+  --tooltip-fg: #121212;
+  --scrollbar: #45454f;
+  --hint: #6a6a72;
+  --canvas-bg: #121212;
+  color-scheme: dark;
+}
