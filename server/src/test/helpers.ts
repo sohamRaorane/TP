@@ -11,6 +11,23 @@ export const TEST_DATABASE_URL =
 
 export type Backend = 'postgres' | 'file';
 
+/** Postgres-backed suites run only when the test database is reachable (file-storage suites always run). */
+export const POSTGRES_AVAILABLE: boolean = await (async () => {
+  const client = new pg.Client({ connectionString: TEST_DATABASE_URL, connectionTimeoutMillis: 1500 });
+  try {
+    await client.connect();
+    await client.query('SELECT 1');
+    return true;
+  } catch {
+    console.warn(`[tests] Postgres not reachable at ${TEST_DATABASE_URL.replace(/:[^:@/]+@/, ':***@')}; skipping Postgres suites`);
+    return false;
+  } finally {
+    await client.end().catch(() => {});
+  }
+})();
+export const BACKENDS: Backend[] = POSTGRES_AVAILABLE ? ['postgres', 'file'] : ['file'];
+export const DEFAULT_BACKEND: Backend = POSTGRES_AVAILABLE ? 'postgres' : 'file';
+
 let seq = 0;
 export function makeElement(overrides: Partial<SketchElement> & { id?: string } = {}): SketchElement {
   seq++;

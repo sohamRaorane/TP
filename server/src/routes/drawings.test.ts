@@ -1,11 +1,11 @@
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { Drawing } from '../../../shared/protocol';
-import { makeElement, scene, startTestServer, type Backend } from '../test/helpers';
+import { BACKENDS, DEFAULT_BACKEND, makeElement, scene, startTestServer, type Backend } from '../test/helpers';
 
 type TestServer = Awaited<ReturnType<typeof startTestServer>>;
 
-describe.each<Backend>(['postgres', 'file'])('REST API (%s storage)', (backend) => {
+describe.each<Backend>(BACKENDS)('REST API (%s storage)', (backend) => {
   let server: TestServer;
   const api = () => request(server.app);
   const create = async (body: object = {}) => {
