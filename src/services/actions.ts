@@ -5,6 +5,7 @@
 // startCollaboration (returns the share URL, rethrows after toasting) and insertDiagramFromText
 // (throws a line-numbered parse error for the dialog to show).
 import { v4 as uuid } from 'uuid';
+import { embedFonts } from '@/utils/embedFont';
 import type { BinaryFiles, DialogType, SketchElement, TextElement, ToolType } from '@/types/appState';
 import { useCanvasStore, selectors, type ElementChanges } from '@/store/canvasStore';
 import { useCollaborationStore } from '@/store/collaborationStore';
@@ -540,6 +541,7 @@ export const actions = {
       background: opts.transparent ? null : opts.dark && s.appState.viewBackgroundColor === '#ffffff' ? '#121212' : s.appState.viewBackgroundColor,
       theme: opts.dark ? 'dark' : 'light',
     });
+    await embedFonts(svg);
     const text = `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(svg)}`;
     downloadBlob(new Blob([text], { type: 'image/svg+xml' }), `${fileBase()}.svg`);
   }),
