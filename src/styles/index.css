@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@import "@fontsource/kalam/400.css";
+@import "./tokens.css";
+@import "./components.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html, body, #root { height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
+body {
+  font-family: var(--ui-font);
+  -webkit-font-smoothing: antialiased;
+  color: var(--color-on-surface);
+  background: var(--canvas-bg);
+}
