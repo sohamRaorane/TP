@@ -444,6 +444,7 @@ describe('presentation & library', () => {
     const f2 = newFrame({ x: 1000, y: 0, width: 400, height: 300, style: st().appState.currentItem, name: 'B' });
     const f1 = newFrame({ x: 0, y: 0, width: 400, height: 300, style: st().appState.currentItem, name: 'A' });
     addCommitted(f2, f1);
+    st().setAppState({ zoom: 1.7 });
     actions.startPresentation();
     expect(st().appState.presentation).toEqual({ active: true, frameIndex: 0 });
     expect(st().appState.viewModeEnabled).toBe(true);
@@ -457,6 +458,7 @@ describe('presentation & library', () => {
     expect(st().appState.presentation.frameIndex).toBe(0);
     actions.stopPresentation();
     expect(st().appState.viewModeEnabled).toBe(false);
+    expect(st().appState.zoom).toBe(1.7);
   });
 
   it('adds selection to the library normalized and inserts clones', async () => {

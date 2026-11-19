@@ -23,11 +23,14 @@ const COLORS = ['#e03131', '#2f9e44', '#1971c2', '#f08c00', '#9c36b5', '#0c8599'
 const loadMe = () => {
   try {
     const raw = localStorage.getItem('sketchboard:me');
-    if (raw) return JSON.parse(raw) as CollaborationState['me'];
+    if (raw) {
+      const me = JSON.parse(raw) as CollaborationState['me'];
+      return /^Guest \d+$/.test(me.name) ? { ...me, name: '' } : me;
+    }
   } catch { /* ignore */ }
   const me = {
     userId: crypto.randomUUID(),
-    name: `Guest ${Math.floor(Math.random() * 900 + 100)}`,
+    name: '',
     color: COLORS[Math.floor(Math.random() * COLORS.length)],
   };
   try { localStorage.setItem('sketchboard:me', JSON.stringify(me)); } catch { /* ignore */ }

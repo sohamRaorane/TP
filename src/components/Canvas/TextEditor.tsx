@@ -62,11 +62,14 @@ export function TextEditor() {
     done.current = false;
     const t = store().elementsById[editingId];
     ta.value = t && t.type === 'text' ? (t.originalText ?? t.text) : '';
-    // focus after the pointer event that started editing has finished
+    const initialValue = ta.value;
+    // Focus after the initiating pointer event, without overwriting fast input.
     const raf = requestAnimationFrame(() => {
       ta.focus();
-      ta.setSelectionRange(ta.value.length, ta.value.length);
-      if (ta.value) ta.select();
+      if (ta.value === initialValue) {
+        ta.setSelectionRange(ta.value.length, ta.value.length);
+        if (ta.value) ta.select();
+      }
     });
     return () => cancelAnimationFrame(raf);
   }, [editingId]);

@@ -30,6 +30,8 @@ function Identity() {
           data-testid="collab-name"
           value={me.name}
           maxLength={40}
+          placeholder="Enter your name"
+          data-autofocus={!me.name.trim() ? 'true' : undefined}
           onChange={(e) => saveMe({ name: e.target.value })}
         />
       </div>
@@ -60,8 +62,14 @@ export function ShareDialog() {
   const [links, setLinks] = useState<{ edit?: string; view?: string }>({});
   const [busy, setBusy] = useState<'edit' | 'view' | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [nameError, setNameError] = useState(false);
 
   const start = async (mode: 'edit' | 'view') => {
+    if (!useCollaborationStore.getState().me.name.trim()) {
+      setNameError(true);
+      return;
+    }
+    setNameError(false);
     setBusy(mode);
     const url = await runAsync(() => actions.startCollaboration(mode));
     setBusy(null);
@@ -107,6 +115,7 @@ export function ShareDialog() {
               </p>
             </div>
             <Identity />
+            {nameError && <p role="alert" style={{ margin: '-10px 0 0', color: 'var(--color-danger-strong)', font: '500 13px var(--ui-font)' }}>Enter your name before starting a session.</p>}
             <div className="flex flex-wrap gap-2">
               <button type="button" className="sb-btn sb-btn--primary" style={{ flex: 1 }} disabled={!!busy} data-testid="start-session" onClick={() => start('edit')}>
                 <Pencil size={16} /> {busy === 'edit' ? 'Starting…' : 'Start session'}

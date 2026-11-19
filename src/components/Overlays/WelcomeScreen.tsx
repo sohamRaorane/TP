@@ -3,7 +3,7 @@ import { CircleQuestionMark, FolderOpen, Sparkles, Users } from 'lucide-react';
 import { useCanvasStore } from '@/store/canvasStore';
 import { LogoMark } from '../icons';
 import { kbd } from '../ui/portal';
-import { useIsNarrow } from '../ui/useMedia';
+import { useIsNarrow, useMediaQuery } from '../ui/useMedia';
 import { openDialog } from '../commands';
 
 const ArrowSvg = ({ d, head, w, h, style }: { d: string; head: string; w: number; h: number; style: CSSProperties }) => (
@@ -40,10 +40,11 @@ function Item({ icon, label, shortcut, onClick, testId }: { icon: ReactNode; lab
 export function WelcomeScreen() {
   const visible = useCanvasStore(welcomeVisible);
   const narrow = useIsNarrow();
+  const showHints = useMediaQuery('(min-width: 901px)');
   if (!visible) return null;
   return (
     <div className="pointer-events-none absolute inset-0 select-none" style={{ zIndex: 5 }} data-testid="welcome-screen">
-      {!narrow && (
+      {showHints && !narrow && (
         <>
           {/* menu hint */}
           <div className="absolute" style={{ left: 30, top: 62 }}>
@@ -68,7 +69,7 @@ export function WelcomeScreen() {
           <span style={{ font: `700 ${narrow ? 34 : 44}px/1 var(--font-hand)`, color: 'var(--color-primary)', letterSpacing: '0.01em', paddingTop: 8 }}>Sketchboard</span>
         </div>
         <div className="sb-hint text-center" style={{ fontSize: 16, marginBottom: 22 }}>
-          All your data is saved locally in your browser.
+          Your data is saved locally in this browser.
         </div>
         <div className="flex w-full flex-col" style={{ gap: 2, maxWidth: 300 }}>
           <Item icon={<FolderOpen size={17} />} label="Open" shortcut={kbd('Ctrl+O')} onClick={() => openDialog('dashboard')} testId="welcome-open" />
