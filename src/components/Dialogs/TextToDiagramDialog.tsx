@@ -48,7 +48,7 @@ export function TextToDiagramDialog() {
       }
     >
       <div className="sb-dialog__body flex flex-col gap-3">
-        <p style={{ margin: 0, font: '400 14px/1.5 var(--ui-font)', color: 'var(--color-muted)' }}>
+        <p style={{ margin: 0, font: '400 14px/1.7 var(--ui-font)', color: 'var(--color-muted)', overflowWrap: 'anywhere' }}>
           Describe a flowchart using a Mermaid-like syntax. Nodes: <code>A[Box]</code>, <code>B{'{Decision}'}</code>, <code>C(Rounded)</code>, <code>D((Circle))</code>.
           Edges: <code>--&gt;</code>, <code>---</code>, <code>-.-&gt;</code>, labels with <code>-- text --&gt;</code> or <code>--&gt;|text|</code>.
         </p>

@@ -1,4 +1,4 @@
-import { ChartNoAxesColumn, CircleQuestionMark, Focus, Map as MapIcon, Maximize, Minus, Plus, Wifi, WifiOff } from 'lucide-react';
+import { ChartNoAxesColumn, Focus, Map as MapIcon, Maximize, Minus, Plus, Wifi, WifiOff } from 'lucide-react';
 import { actions } from '@/services/actions';
 import { useCanvasStore } from '@/store/canvasStore';
 import { useCollaborationStore } from '@/store/collaborationStore';
@@ -74,7 +74,6 @@ export function FooterRight() {
       <ConnectionChip />
       <div className="sb-island flex items-center sb-hide-narrow">
         <IconButton label={stats ? 'Hide stats' : 'Stats for nerds'} shortcut="Alt+/" side="top" active={stats} aria-pressed={stats} icon={<ChartNoAxesColumn size={16} />} data-testid="stats-toggle" onClick={toggles.stats} />
-        <IconButton label="Help" shortcut="?" side="top" icon={<CircleQuestionMark size={16} />} data-testid="help-footer" onClick={() => openDialog('help')} />
       </div>
     </div>
   );

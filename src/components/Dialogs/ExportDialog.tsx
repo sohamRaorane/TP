@@ -61,7 +61,7 @@ export function ExportDialog() {
           )}
           {size && (
             <span className="absolute" style={{ right: 8, bottom: 8, font: '500 11px var(--ui-font)', color: 'var(--color-muted)', background: 'var(--island-bg)', padding: '3px 6px', borderRadius: 4 }}>
-              {size.w} × {size.h}px
+              Output: {size.w} × {size.h} px
             </span>
           )}
         </div>

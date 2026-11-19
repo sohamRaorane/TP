@@ -97,7 +97,7 @@ export function VersionHistory() {
                     <span className="flex-1">
                       <span style={{ display: 'block', font: '600 13px/1.3 var(--ui-font)' }}>{v.label ?? new Date(v.createdAt).toLocaleString()}</span>
                       <span style={{ font: '400 12px/1.3 var(--ui-font)', color: 'var(--color-muted)' }}>
-                        {relativeTime(v.createdAt)} · {v.elementCount} elements{i === 0 ? ' · latest' : ''}
+                        {relativeTime(v.createdAt)} · {v.elementCount} element{v.elementCount === 1 ? '' : 's'}{i === 0 ? ' · latest' : ''}
                       </span>
                     </span>
                   </button>

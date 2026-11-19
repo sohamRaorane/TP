@@ -129,6 +129,26 @@ docs/               ARCHITECTURE.md, CONTRACTS.md
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the engine, history and sync work.
 
+### End-to-end architecture
+
+```mermaid
+flowchart LR
+  U[Browser user] --> UI[React UI and CanvasController]
+  UI --> S[Zustand canvas and collaboration stores]
+  S --> E[Drawing engine]
+  E --> R[Canvas renderer]
+  R --> UI
+  S --> P[Persistence service]
+  P --> API[Express REST API]
+  API --> D[(PostgreSQL or local JSON)]
+  S <--> C[Socket.IO collaboration service]
+  C <--> API
+  C <--> O[Other connected browsers]
+  UI --> X[PNG SVG JSON export]
+```
+
+Each interaction enters through the UI/controller, updates the shared client stores, and is rendered immediately. Persistence sends debounced drawing snapshots through the API, while collaboration sends incremental scene and presence updates over Socket.IO; both server storage modes share the same REST contract.
+
 ## Scripts
 
 | Command | Description |

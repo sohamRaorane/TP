@@ -6,6 +6,7 @@ import { toast } from '@/utils/toast';
 
 const st = () => useCanvasStore.getState();
 let prevViewMode = false;
+let prevZoom = 1;
 
 export const orderFrames = (els: readonly SketchElement[]): FrameElement[] =>
   els
@@ -29,7 +30,10 @@ export function startPresentation() {
     return;
   }
   const a = st().appState;
-  if (!a.presentation.active) prevViewMode = a.viewModeEnabled;
+  if (!a.presentation.active) {
+    prevViewMode = a.viewModeEnabled;
+    prevZoom = a.zoom;
+  }
   st().setAppState({
     viewModeEnabled: true,
     selectedElementIds: {},
@@ -43,7 +47,7 @@ export function startPresentation() {
 
 export function stopPresentation() {
   if (!st().appState.presentation.active) return;
-  st().setAppState({ presentation: { active: false, frameIndex: 0 }, viewModeEnabled: prevViewMode });
+  st().setAppState({ presentation: { active: false, frameIndex: 0 }, viewModeEnabled: prevViewMode, zoom: prevZoom });
 }
 
 export const nextSlide = () => {
