@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: sketchboard-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci --prefix server && npm --prefix server run generate
+    startCommand: npm --prefix server start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: STORAGE
+        value: postgres
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false

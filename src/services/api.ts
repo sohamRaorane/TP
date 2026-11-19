@@ -24,7 +24,9 @@ export class ApiError extends Error {
   }
 }
 
-export const API_BASE = '/api';
+const configuredApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim().replace(/\/+$/, '');
+export const API_BASE = configuredApiUrl ? `${configuredApiUrl}/api` : '/api';
+export const API_ORIGIN = configuredApiUrl;
 export const API_TIMEOUT_MS = 8000;
 
 const STATUS_TEXT: Record<number, string> = {

@@ -40,6 +40,17 @@ docker compose up --build     # http://localhost:4000 (client served by the API)
 ### Collaborate from other devices
 Start the client with `npm run dev -- --host` and the server with `npm --prefix server run dev`, then share the link using your machine's LAN IP.
 
+### Deployment
+
+The frontend can be deployed to Vercel and the API to Render with Neon PostgreSQL:
+
+1. Create a Neon database and copy its pooled `DATABASE_URL`.
+2. Deploy the repository's `render.yaml` to Render. Set `DATABASE_URL` to the Neon connection string and `CORS_ORIGIN` to the Vercel URL.
+3. Deploy the repository to Vercel with the project root as the root directory. Set `VITE_API_URL` to the Render service URL (for example, `https://sketchboard-api.onrender.com`).
+4. In Vercel, add `sohamdev.xyz` as a custom domain and point the domain's DNS records to the values Vercel provides. The frontend will use the Render API and Socket.IO service through `VITE_API_URL`.
+
+Do not commit either provider's credentials. `DATABASE_URL`, `CORS_ORIGIN`, and `VITE_API_URL` belong in provider environment settings.
+
 ---
 
 ## Features

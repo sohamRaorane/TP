@@ -21,6 +21,7 @@ import {
 } from './syncDiff';
 import { throttle } from '@/utils/timing';
 import { toast } from '@/utils/toast';
+import { API_ORIGIN } from './api';
 
 type ClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 
@@ -45,7 +46,7 @@ const canvas = () => useCanvasStore.getState();
 
 /** factory indirection so tests can inject a fake socket */
 let socketFactory: () => ClientSocket = () =>
-  io({ path: '/socket.io', autoConnect: false, reconnection: true, reconnectionDelay: 500, reconnectionDelayMax: 5000 });
+  io(API_ORIGIN, { path: '/socket.io', autoConnect: false, reconnection: true, reconnectionDelay: 500, reconnectionDelayMax: 5000 });
 export const __setSocketFactory = (f: () => ClientSocket) => {
   socketFactory = f;
 };
