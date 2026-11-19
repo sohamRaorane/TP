@@ -3,7 +3,7 @@ services:
     name: sketchboard-api
     runtime: node
     plan: free
-    buildCommand: npm ci --prefix server && npm --prefix server run generate
+    buildCommand: npm ci --prefix server --include=dev && npm --prefix server run generate
     startCommand: npm --prefix server start
     healthCheckPath: /api/health
     envVars:
